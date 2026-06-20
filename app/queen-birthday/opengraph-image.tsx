@@ -9,7 +9,8 @@ export const contentType = 'image/png';
 
 export default async function Image() {
     const photo = await readFile(join(process.cwd(), 'public/images/queen.png'));
-    const photoSrc = `data:image/png;base64,${photo.toString('base64')}`;
+    // The file is JPEG data despite the .png extension; declare the correct MIME so Satori can decode it.
+    const photoSrc = `data:image/jpeg;base64,${photo.toString('base64')}`;
 
     return new ImageResponse(
         (
