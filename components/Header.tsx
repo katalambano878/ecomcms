@@ -25,6 +25,7 @@ export default function Header() {
   const showCart = getSetting('header_show_cart') !== 'false';
   const showAccount = getSetting('header_show_account') !== 'false';
   const navLinks = getSettingJSON<{ label: string; href: string }[]>('header_nav_links_json', [
+    { label: "Queen's Birthday", href: '/queen-birthday' },
     { label: 'Shop', href: '/shop' },
     { label: 'Categories', href: '/categories' },
     { label: 'About', href: '/about' },

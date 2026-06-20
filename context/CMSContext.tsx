@@ -268,6 +268,7 @@ export const defaultSettings: SiteSettings = {
     // Header
     header_logo_height: '40',
     header_nav_links_json: JSON.stringify([
+        { label: "Queen's Birthday", href: '/queen-birthday' },
         { label: 'Shop', href: '/shop' },
         { label: 'Categories', href: '/categories' },
         { label: 'About', href: '/about' },
