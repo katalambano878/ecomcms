@@ -53,19 +53,7 @@ export default async function Image() {
                         flex: 1,
                     }}
                 >
-                    <div
-                        style={{
-                            fontSize: 22,
-                            letterSpacing: 8,
-                            color: '#9A7B43',
-                            textTransform: 'uppercase',
-                            fontWeight: 600,
-                        }}
-                    >
-                        In honour of our CEO
-                    </div>
-
-                    <div style={{ display: 'flex', fontSize: 34, color: '#7A1E2B', fontStyle: 'italic', marginTop: 18 }}>
+                    <div style={{ display: 'flex', fontSize: 34, color: '#7A1E2B', fontStyle: 'italic' }}>
                         Happy Birthday,
                     </div>
                     <div style={{ display: 'flex', fontSize: 104, fontWeight: 800, color: '#211C16', lineHeight: 1 }}>

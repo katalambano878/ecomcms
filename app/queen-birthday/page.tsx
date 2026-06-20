@@ -69,12 +69,7 @@ export default function QueenBirthdayPage() {
   return (
     <main className="min-h-screen bg-[#F7F1E7] text-[#211C16]">
       <div className="mx-auto max-w-6xl px-5 py-12 sm:py-16 lg:py-20">
-        {/* Eyebrow */}
-        <p className="text-center text-xs font-medium uppercase tracking-[0.34em] text-[#9A7B43]">
-          In honour of our CEO
-        </p>
-
-        <div className="mt-10 grid items-center gap-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] lg:gap-16">
+        <div className="grid items-center gap-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] lg:gap-16">
           {/* Left: matted portrait + tribute */}
           <div className="text-center lg:text-left">
             <div className="mx-auto w-fit lg:mx-0">
