@@ -55,6 +55,18 @@ function ThankYouContent() {
         </p>
         <p className="mt-3 font-handwriting text-2xl text-[#7A1E2B]">{CEO_NAME}</p>
 
+        <div className="mx-auto mt-8 max-w-md border-t border-[#E2D6C0] pt-7 text-[15px] leading-relaxed text-[#5C5345]">
+          <p>
+            Your name will forever be written in the record books of Queensprettydolls Fashion as one of the first
+            people to use our website on its launch day. That&apos;s not just support &mdash; that&apos;s history.
+          </p>
+          <p className="mt-4">
+            Years from now, when people talk about how this brand grew, you&apos;ll be able to proudly say,{' '}
+            <span className="italic text-[#43392E]">&ldquo;I was there from the beginning.&rdquo;</span> And that,
+            without a doubt, is the biggest bragging right of all.
+          </p>
+        </div>
+
         {amount && (
           <p className="mt-6 text-[15px] text-[#5C5345]">
             <span className="font-semibold text-[#211C16]">{formatCedis(amount)}</span> gifted to {CEO_NAME}.
