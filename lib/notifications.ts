@@ -87,19 +87,29 @@ function maskPhone(phone: string): string {
     return phone.slice(0, 4) + '****' + phone.slice(-2);
 }
 
-export async function sendEmail({ to, subject, html }: { to: string; subject: string; html: string }) {
+export async function sendEmail({ to, subject, html }: { to: string | string[]; subject: string; html: string }) {
     if (!process.env.RESEND_API_KEY) {
         console.warn('[Email] RESEND_API_KEY not configured');
         return null;
     }
     try {
-        const data = await resend.emails.send({
+        const { data, error } = await resend.emails.send({
             from: EMAIL_FROM,
             to,
             subject,
             html,
         });
-        console.log('[Email] Sent successfully to:', to.split('@')[0] + '@***');
+
+        // Resend returns errors in the response body (it does not throw), so we
+        // must inspect `error` explicitly or failures look like successes.
+        if (error) {
+            console.error('[Email] Send rejected by Resend:', error.message || JSON.stringify(error));
+            return null;
+        }
+
+        const firstTo = Array.isArray(to) ? to[0] : to;
+        const extra = Array.isArray(to) && to.length > 1 ? ` (+${to.length - 1} more)` : '';
+        console.log('[Email] Sent successfully to:', firstTo.split('@')[0] + '@***' + extra);
         return data;
     } catch (error: any) {
         console.error('[Email] Failed:', error.message);
@@ -501,6 +511,70 @@ ${emailButton('Pay Now — GH₵' + Number(total).toFixed(2), paymentUrl, '#d977
         await sendSMS({
             to: phone,
             message: smsMessage
+        });
+    }
+}
+
+export async function sendGiftNotification(gift: {
+    amount: number | string;
+    donorName?: string;
+    message?: string;
+    payerPhone?: string;
+    reference?: string;
+}) {
+    const { amount, donorName, message, payerPhone, reference } = gift;
+
+    // Where to notify. QUEEN_GIFT_EMAIL may be a comma-separated list; falls back to ADMIN_EMAIL.
+    const recipient = Array.from(
+        new Set(
+            (process.env.QUEEN_GIFT_EMAIL || ADMIN_EMAIL)
+                .split(',')
+                .map((e) => e.trim())
+                .filter(Boolean)
+        )
+    );
+    const giftFrom = (donorName && donorName.trim()) ? donorName.trim() : 'Someone special';
+    const amountNum = Number(amount);
+    const amountLabel = Number.isFinite(amountNum) ? `GH\u20B5 ${amountNum.toLocaleString()}` : `GH\u20B5 ${amount}`;
+    const when = new Date().toLocaleString('en-GB', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+
+    const messageBlock = (message && message.trim())
+        ? `<div style="background-color:#fbf7f1;border-left:4px solid #7A1E2B;border-radius:0 8px 8px 0;padding:16px 20px;margin:20px 0;">
+  <p style="color:#9A7B43;font-size:12px;margin:0 0 6px;text-transform:uppercase;letter-spacing:0.5px;">Their message</p>
+  <p style="color:#374151;font-size:15px;margin:0;line-height:1.6;font-style:italic;">&ldquo;${message.trim()}&rdquo;</p>
+</div>`
+        : '';
+
+    await sendEmail({
+        to: recipient,
+        subject: `\uD83C\uDF81 Birthday Gift: ${amountLabel} from ${giftFrom}`,
+        html: emailLayout(`
+<div style="text-align:center;margin-bottom:24px;">
+  <div style="width:64px;height:64px;background-color:#fbf7f1;border-radius:50%;margin:0 auto 16px;line-height:64px;font-size:28px;">&#127873;</div>
+  <h2 style="margin:0 0 4px;color:#111827;font-size:24px;">You received a birthday gift!</h2>
+  <p style="margin:0;color:#6b7280;font-size:15px;">Someone just celebrated you. &#127881;</p>
+</div>
+
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f9fafb;border-radius:12px;overflow:hidden;margin:20px 0;">
+  ${emailInfoRow('Amount', `<span style="color:#7A1E2B;font-size:18px;font-weight:700;">${amountLabel}</span>`)}
+  ${emailInfoRow('From', giftFrom)}
+  ${payerPhone ? emailInfoRow('Mobile Money No.', payerPhone) : ''}
+  ${reference ? emailInfoRow('Reference', reference) : ''}
+  ${emailInfoRow('Received', when)}
+</table>
+
+${messageBlock}
+
+<p style="color:#9ca3af;font-size:12px;text-align:center;margin:16px 0 0;">This gift was sent through your birthday page and settled to your Moolre account.</p>
+`, `${giftFrom} gifted you ${amountLabel}`),
+    });
+
+    // Optional SMS alert if a CEO phone + Moolre SMS key are configured
+    const ceoPhone = process.env.QUEEN_GIFT_PHONE;
+    if (ceoPhone) {
+        await sendSMS({
+            to: ceoPhone,
+            message: `Happy Birthday! You just received a gift of ${amountLabel} from ${giftFrom}${message && message.trim() ? `: "${message.trim()}"` : '.'}`,
         });
     }
 }

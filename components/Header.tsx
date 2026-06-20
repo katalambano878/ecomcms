@@ -20,11 +20,6 @@ export default function Header() {
 
   const siteName = getSetting('site_name') || 'StandardStore';
   const siteLogo = getSetting('site_logo') || '/logo.png';
-  const contactPhone = getSetting('contact_phone') || '';
-  const contactEmail = getSetting('contact_email') || '';
-  const topMessage =
-    getSetting('header_top_message') ||
-    'Free Store Pickup Available · Order Online, Pick Up Today';
   const showSearch = getSetting('header_show_search') !== 'false';
   const showWishlist = getSetting('header_show_wishlist') !== 'false';
   const showCart = getSetting('header_show_cart') !== 'false';
@@ -76,26 +71,6 @@ export default function Header() {
       <AnnouncementBar />
 
       <header className="sticky top-0 z-50 shadow-sm">
-        <div className="hidden md:block bg-gradient-to-r from-emerald-900 via-emerald-800 to-emerald-700 text-emerald-50 text-xs tracking-[0.2em] uppercase">
-          <div className="max-w-7xl mx-auto px-6 py-2 flex items-center justify-between gap-6">
-            <span className="font-semibold text-[11px]">{topMessage}</span>
-            <div className="flex items-center gap-6 text-emerald-50/80">
-              {contactPhone && (
-                <a href={`tel:${contactPhone}`} className="flex items-center gap-2 hover:text-white transition-colors">
-                  <i className="ri-phone-line text-sm" />
-                  {contactPhone}
-                </a>
-              )}
-              {contactEmail && (
-                <a href={`mailto:${contactEmail}`} className="flex items-center gap-2 hover:text-white transition-colors">
-                  <i className="ri-mail-line text-sm" />
-                  {contactEmail}
-                </a>
-              )}
-            </div>
-          </div>
-        </div>
-
         <div className="backdrop-blur bg-white/90 border-b border-slate-200">
           <nav aria-label="Main navigation" className="max-w-7xl mx-auto px-4 sm:px-6">
             <div className="flex items-center justify-between gap-4 py-4">

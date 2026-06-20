@@ -225,7 +225,7 @@ export default function Footer() {
           </div>
         </div>
 
-        <div className="mt-16 pt-8 border-t border-slate-200 flex flex-col md:flex-row gap-4 items-center justify-between text-xs uppercase tracking-[0.4em] text-slate-400">
+        <div className="mt-16 pt-8 border-t border-slate-200 flex flex-col md:flex-row gap-4 items-center justify-between text-xs text-slate-400">
           <p>&copy; {new Date().getFullYear()} {siteName}. All rights reserved.</p>
           <div className="flex items-center gap-4">
             {poweredBy && (
