@@ -10,24 +10,31 @@ export default function AboutPage() {
   const { getSetting } = useCMS();
   const [activeTab, setActiveTab] = useState('story');
 
-  const siteName = getSetting('site_name') || 'Our Store';
+  const siteName = getSetting('site_name') || 'Queensprettydolls Fashion';
 
-  // CMS-driven content
-  const heroTitle = getSetting('about_hero_title') || 'The Art of Hair';
-  const heroSubtitle = getSetting('about_hero_subtitle') || 'A journey of uncompromising quality and timeless beauty.';
-  const storyTitle = getSetting('about_story_title') || 'Founded on Passion';
-  const storyContent = getSetting('about_story_content') || '';
-  const storyImage = getSetting('about_story_image') || 'https://images.unsplash.com/photo-1580618672591-eb180b1a973f?q=80&w=2069&auto=format&fit=crop';
-  const founderName = getSetting('about_founder_name') || 'Sarah Lawson';
-  const founderTitle = getSetting('about_founder_title') || 'Founder & CEO';
-  const mission1Title = getSetting('about_mission1_title') || 'Ethical Sourcing';
-  const mission1Content = getSetting('about_mission1_content') || '';
-  const mission2Title = getSetting('about_mission2_title') || 'Accessible Luxury';
-  const mission2Content = getSetting('about_mission2_content') || '';
-  const valuesTitle = getSetting('about_values_title') || 'Our Philosophy';
+  // Hardcoded brand content
+  const heroTitle = 'The Story of Queensprettydolls Fashion';
+  const heroSubtitle = 'It began with a simple dream — to make ends meet.';
+  const storyTitle = 'From a Single Dress to the World';
+  const storyImage = '/images/queen.png';
+  const founderName = 'Queen';
+  const founderTitle = 'Founder & CEO';
+  const mission1Title = 'Our Mission';
+  const mission1Content =
+    'To help people look beautiful, feel confident, and proudly say, “I got this from Queensprettydolls Fashion.” What was once a business became a passion — dressing people across the world and standing behind every piece we sell.';
+  const mission2Title = 'Our Vision';
+  const mission2Content =
+    'From Ghana to Togo, from Nigeria to China, we are taking steps toward manufacturing and producing our own original designs for customers everywhere — building a brand that crosses borders and reaches new heights.';
+  const valuesTitle = 'What This Journey Taught Us';
 
-  // Story paragraphs (split by newlines)
-  const storyParagraphs = storyContent.split('\n').filter((p: string) => p.trim());
+  const storyParagraphs = [
+    'Queen was just a young lady trying to make ends meet. She wasn’t thinking about supplying the world. She simply wanted to sell dresses to feed.',
+    'The journey started in Accra’s Makola Market, where she bought clothes from wholesalers and sold them to customers one piece at a time. As her passion grew, she began traveling to Togo, purchasing just two, three, or four pieces at a time for her customers.',
+    'She had no guarantees — only faith and hard work. Faith that one day the small brand she was building would become something greater.',
+    'What started with a few pieces slowly grew into hundreds. Hundreds became thousands. Within a few years, Queensprettydolls Fashion had grown from selling single pieces to moving hundreds, thousands, and eventually tens of thousands of pieces.',
+    'Seven years later, the journey continues. The business that started on the streets of Accra expanded beyond Ghana — moving from importing clothes from Togo to establishing operations in Nigeria, where original designs began to take shape.',
+    'Today, the same brand that started in Makola Market has crossed borders and reached new heights. From Ghana to Togo, from Nigeria to China, Queen’s Pretty Dolls Fashion is now taking steps toward manufacturing and producing its own designs for customers across the world.',
+  ];
 
   return (
     <div className="bg-white min-h-screen text-black selection:bg-black selection:text-white">
@@ -82,21 +89,7 @@ export default function AboutPage() {
             <div className="order-2 lg:order-1">
               <h2 className="font-serif text-4xl lg:text-5xl mb-8 leading-tight">{storyTitle}</h2>
               <div className="space-y-6 text-gray-600 font-light leading-relaxed text-lg">
-                {storyParagraphs.length > 0 ? (
-                  storyParagraphs.map((p: string, i: number) => <p key={i}>{p}</p>)
-                ) : (
-                  <>
-                    <p>
-                      {siteName} was born from a desire to redefine the standard of beauty. We believe that hair is not just an accessory, but a profound expression of identity and confidence.
-                    </p>
-                    <p>
-                      Frustrated by the lack of transparency in the industry, we set out to build a brand rooted in integrity. We travel directly to the source, hand-selecting every strand to ensure it meets our uncompromising standards.
-                    </p>
-                    <p>
-                      This is more than just business; it is a personal commitment to excellence. When you choose {siteName}, you are choosing quality that speaks for itself.
-                    </p>
-                  </>
-                )}
+                {storyParagraphs.map((p: string, i: number) => <p key={i}>{p}</p>)}
               </div>
 
               <div className="mt-12 flex items-center gap-4">
@@ -156,9 +149,9 @@ export default function AboutPage() {
           <span className="text-xs font-bold uppercase tracking-[0.2em] text-gray-500 mb-8">{valuesTitle}</span>
           <div className="grid md:grid-cols-3 gap-12 lg:gap-24 w-full">
             {[
-              { title: 'Authenticity', desc: '100% Verified Human Hair.' },
-              { title: 'Craftsmanship', desc: 'Hand-finished for perfection.' },
-              { title: 'Longevity', desc: 'Designed to last for years.' },
+              { title: 'Consistency', desc: 'Great things are built one step at a time.' },
+              { title: 'Vision', desc: 'Believing in a dream before anyone else can see it.' },
+              { title: 'Faith', desc: 'Foundations are laid brick by brick, with hard work.' },
             ].map((val, i) => (
               <div key={i} className="text-center group cursor-default">
                 <h3 className="font-serif text-4xl mb-4 text-gray-300 group-hover:text-white transition-colors">{val.title}</h3>
@@ -167,6 +160,41 @@ export default function AboutPage() {
               </div>
             ))}
           </div>
+        </div>
+      </section>
+
+      {/* Inspirational closing / manifesto */}
+      <section className="relative py-28 lg:py-36 px-4 sm:px-6 bg-white">
+        <div className="max-w-3xl mx-auto text-center">
+          <span className="block text-xs font-bold uppercase tracking-[0.2em] mb-8 text-gray-500">
+            A Note to You
+          </span>
+          <p className="font-serif text-2xl md:text-3xl leading-relaxed text-black mb-10">
+            If you are reading this today, know that this story is not about luck.
+          </p>
+          <div className="space-y-3 text-lg md:text-xl font-light text-gray-700 mb-12">
+            <p>It is about consistency.</p>
+            <p>It is about believing in a vision before anyone else can see it.</p>
+            <p>It is about understanding that great things are built one step at a time.</p>
+          </div>
+          <p className="text-gray-600 font-light leading-relaxed max-w-2xl mx-auto mb-12">
+            A building is not completed in a day. Its foundation is laid brick by brick. In the same way, every dream
+            begins small before it becomes something extraordinary. So wherever you are in your journey, keep going.
+            Start with what you have. Believe in your vision. Stay consistent.
+          </p>
+          <div className="flex items-center justify-center gap-4 mb-10">
+            <div className="h-px w-12 bg-black"></div>
+            <p className="text-sm uppercase tracking-widest text-gray-500">
+              One day, your story may inspire someone else
+            </p>
+            <div className="h-px w-12 bg-black"></div>
+          </div>
+          <p className="font-serif text-3xl md:text-4xl italic text-black">
+            Welcome to the journey.
+          </p>
+          <p className="font-serif text-3xl md:text-4xl italic text-black mt-2">
+            Welcome to {siteName}.
+          </p>
         </div>
       </section>
 
