@@ -224,6 +224,128 @@ export default function QueenBirthdayPage() {
           </div>
         </div>
       </div>
+
+      {/* ===== The Story of Queensprettydolls Fashion ===== */}
+      <section className="border-t border-[#F3D4E2] bg-white">
+        <div className="mx-auto max-w-3xl px-5 py-16 sm:py-20 lg:py-24">
+          {/* Heading */}
+          <div className="text-center">
+            <span className="text-xs font-medium uppercase tracking-[0.3em] text-[#C2548A]">Our Journey</span>
+            <h2 className="mt-3 font-serif text-3xl font-semibold leading-tight sm:text-4xl">
+              The Story of Queensprettydolls Fashion
+            </h2>
+            <div className="mx-auto mt-5 flex w-fit items-center gap-3">
+              <span className="h-px w-10 bg-[#E89BBE]" />
+              <i className="ri-heart-3-fill text-[#D6418A]" />
+              <span className="h-px w-10 bg-[#E89BBE]" />
+            </div>
+            <p className="mt-6 font-serif text-xl italic text-[#D6418A] sm:text-2xl">
+              It began with a simple dream — to make ends meet.
+            </p>
+          </div>
+
+          {/* Narrative */}
+          <div className="mt-10 space-y-5 text-[15px] leading-relaxed text-[#6E5862] sm:text-base">
+            <p>
+              Queen was just a young lady trying to make ends meet. She wasn&apos;t thinking about supplying the
+              world. She simply wanted to sell dresses to feed.
+            </p>
+            <p>
+              The journey started in Accra&apos;s Makola Market, where she bought clothes from wholesalers and sold
+              them to customers one piece at a time. As her passion grew, she began traveling to Togo, purchasing
+              just two, three, or four pieces at a time for her customers.
+            </p>
+            <p className="font-serif text-lg italic text-[#5A3A48]">
+              She had no guarantees — only faith and hard work. Faith that one day the small brand she was building
+              would become something greater.
+            </p>
+            <p>
+              What started with a few pieces slowly grew into hundreds. Hundreds became thousands. Within a few
+              years, Queensprettydolls Fashion had grown from selling single pieces to moving hundreds, thousands,
+              and eventually tens of thousands of pieces.
+            </p>
+          </div>
+
+          {/* Milestone stats */}
+          <div className="mt-12 grid grid-cols-3 gap-3 sm:gap-5">
+            {[
+              { value: '7', label: 'Years & counting' },
+              { value: '4', label: 'Countries reached' },
+              { value: '10,000s', label: 'Pieces delivered' },
+            ].map((stat) => (
+              <div
+                key={stat.label}
+                className="rounded-xl border border-[#F3D4E2] bg-[#FDEEF4] px-3 py-5 text-center"
+              >
+                <div className="font-serif text-2xl font-semibold text-[#D6418A] sm:text-3xl">{stat.value}</div>
+                <div className="mt-1 text-[11px] uppercase tracking-wider text-[#8A6E7A] sm:text-xs">
+                  {stat.label}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Journey timeline */}
+          <div className="mt-12">
+            <p className="text-center text-xs font-medium uppercase tracking-[0.3em] text-[#C2548A]">
+              From the streets of Accra to the world
+            </p>
+            <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-4">
+              {[
+                { city: 'Accra', note: 'Makola Market — where it all began' },
+                { city: 'Togo', note: 'A few pieces at a time' },
+                { city: 'Nigeria', note: 'Original designs take shape' },
+                { city: 'China', note: 'Manufacturing our own' },
+              ].map((stop, i) => (
+                <div key={stop.city} className="relative text-center">
+                  <div className="mx-auto flex h-11 w-11 items-center justify-center rounded-full border border-[#E89BBE] bg-white font-serif text-sm font-semibold text-[#D6418A] shadow-[0_10px_24px_-14px_rgba(214,65,138,0.6)]">
+                    {i + 1}
+                  </div>
+                  <div className="mt-3 font-serif text-lg font-semibold text-[#3A1E2E]">{stop.city}</div>
+                  <div className="mt-1 text-xs leading-snug text-[#8A6E7A]">{stop.note}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <p className="mt-12 text-center text-[15px] leading-relaxed text-[#6E5862] sm:text-base">
+            Seven years later, the journey continues. What was once a business became a passion — a mission to help
+            people look beautiful, feel confident, and proudly say,{' '}
+            <span className="font-serif italic text-[#5A3A48]">
+              &ldquo;I got this from Queensprettydolls Fashion.&rdquo;
+            </span>
+          </p>
+
+          {/* Inspirational pull-quote */}
+          <div className="mt-12 rounded-2xl border border-[#F3D4E2] bg-[#FDEEF4] p-7 text-center sm:p-10">
+            <p className="font-serif text-xl font-semibold text-[#3A1E2E] sm:text-2xl">
+              This story is not about luck.
+            </p>
+            <div className="mt-5 space-y-2 text-[15px] text-[#6E5862] sm:text-base">
+              <p>It is about consistency.</p>
+              <p>It is about believing in a vision before anyone else can see it.</p>
+              <p>It is about understanding that great things are built one step at a time.</p>
+            </div>
+            <p className="mx-auto mt-6 max-w-xl text-sm leading-relaxed text-[#8A6E7A]">
+              A building is not completed in a day. Its foundation is laid brick by brick. In the same way, every
+              dream begins small before it becomes something extraordinary.
+            </p>
+            <div className="mx-auto mt-7 flex w-fit flex-col gap-1 font-serif text-lg italic text-[#D6418A]">
+              <span>So wherever you are in your journey, keep going.</span>
+              <span>Start with what you have. Believe in your vision. Stay consistent.</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Closing band */}
+        <div className="bg-[#D6418A] px-5 py-14 text-center text-white sm:py-16">
+          <p className="text-sm font-medium uppercase tracking-[0.3em] text-white/80">
+            One day, your story may inspire someone else
+          </p>
+          <p className="mt-5 font-serif text-3xl italic sm:text-4xl">Welcome to the journey.</p>
+          <p className="mt-1 font-serif text-3xl italic sm:text-4xl">Welcome to Queensprettydolls Fashion.</p>
+        </div>
+      </section>
     </main>
   );
 }
