@@ -266,6 +266,40 @@ export default function QueenBirthdayPage() {
             </p>
           </div>
 
+          {/* Moments from the journey */}
+          <div className="mt-12">
+            <p className="text-center text-xs font-medium uppercase tracking-[0.3em] text-[#C2548A]">
+              Moments from the journey
+            </p>
+            <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+              {[
+                { src: '/images/journey-accra-tudu.png', caption: 'Shipments leaving Accra' },
+                { src: '/images/journey-volta.png', caption: 'Reaching every region' },
+                { src: '/images/journey-accra-ayawaso.png', caption: 'Orders by the hundreds' },
+                { src: '/images/journey-aba.png', caption: 'Sourcing in Aba, Nigeria' },
+                { src: '/images/journey-lagos.png', caption: 'On the road — Lagos' },
+              ].map((shot, i) => (
+                <figure
+                  key={shot.src}
+                  className={`group relative aspect-[3/4] overflow-hidden rounded-xl border border-[#F3D4E2] bg-[#FDEEF4] shadow-[0_20px_40px_-28px_rgba(214,65,138,0.5)] ${
+                    i === 4 ? 'col-span-2 sm:col-span-1' : ''
+                  }`}
+                >
+                  <Image
+                    src={shot.src}
+                    alt={shot.caption}
+                    fill
+                    sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
+                    className="object-cover transition-transform duration-500 group-hover:scale-105"
+                  />
+                  <figcaption className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/65 via-black/25 to-transparent px-3 pb-2.5 pt-8 text-left">
+                    <span className="text-[11px] font-medium leading-tight text-white">{shot.caption}</span>
+                  </figcaption>
+                </figure>
+              ))}
+            </div>
+          </div>
+
           {/* Milestone stats */}
           <div className="mt-12 grid grid-cols-3 gap-3 sm:gap-5">
             {[
