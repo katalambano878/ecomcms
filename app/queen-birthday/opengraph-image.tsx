@@ -19,20 +19,20 @@ export default async function Image() {
                     width: '100%',
                     height: '100%',
                     display: 'flex',
-                    backgroundColor: '#F7F1E7',
+                    backgroundColor: '#FFF5F8',
                     padding: 48,
                 }}
             >
-                {/* Photo with matted gold frame */}
+                {/* Photo with matted pink frame */}
                 <div
                     style={{
                         display: 'flex',
                         backgroundColor: '#ffffff',
                         padding: 12,
-                        boxShadow: '0 30px 60px rgba(33,28,22,0.25)',
+                        boxShadow: '0 30px 60px rgba(214,65,138,0.22)',
                     }}
                 >
-                    <div style={{ display: 'flex', border: '2px solid #C6A65E', padding: 6 }}>
+                    <div style={{ display: 'flex', border: '2px solid #E89BBE', padding: 6 }}>
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
                             src={photoSrc}
@@ -54,20 +54,20 @@ export default async function Image() {
                         flex: 1,
                     }}
                 >
-                    <div style={{ display: 'flex', fontSize: 34, color: '#7A1E2B', fontStyle: 'italic' }}>
+                    <div style={{ display: 'flex', fontSize: 34, color: '#D6418A', fontStyle: 'italic' }}>
                         Happy Birthday,
                     </div>
-                    <div style={{ display: 'flex', fontSize: 104, fontWeight: 800, color: '#211C16', lineHeight: 1 }}>
+                    <div style={{ display: 'flex', fontSize: 104, fontWeight: 800, color: '#3A1E2E', lineHeight: 1 }}>
                         Queen
                     </div>
 
                     <div style={{ display: 'flex', alignItems: 'center', marginTop: 26 }}>
-                        <div style={{ width: 48, height: 2, backgroundColor: '#C6A65E' }} />
+                        <div style={{ width: 48, height: 2, backgroundColor: '#E89BBE' }} />
                         <div
                             style={{
                                 fontSize: 22,
                                 letterSpacing: 6,
-                                color: '#9A7B43',
+                                color: '#C2548A',
                                 textTransform: 'uppercase',
                                 marginLeft: 16,
                                 fontWeight: 600,
@@ -81,7 +81,7 @@ export default async function Image() {
                         style={{
                             display: 'flex',
                             marginTop: 34,
-                            backgroundColor: '#7A1E2B',
+                            backgroundColor: '#D6418A',
                             color: '#ffffff',
                             fontSize: 26,
                             fontWeight: 700,
