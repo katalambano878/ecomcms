@@ -226,9 +226,9 @@ export default function QueenBirthdayPage() {
       </div>
 
       {/* ===== The Story of Queensprettydolls Fashion ===== */}
-      <section className="border-t border-[#F3D4E2] bg-white">
-        <div className="mx-auto max-w-3xl px-5 py-16 sm:py-20 lg:py-24">
-          {/* Heading */}
+      <section className="overflow-hidden border-t border-[#F3D4E2] bg-white">
+        {/* Heading + opening + early chapter + stats */}
+        <div className="mx-auto max-w-3xl px-5 pt-16 sm:pt-20 lg:pt-24">
           <div className="text-center">
             <span className="text-xs font-medium uppercase tracking-[0.3em] text-[#C2548A]">Our Journey</span>
             <h2 className="mt-3 font-serif text-3xl font-semibold leading-tight sm:text-4xl">
@@ -244,8 +244,15 @@ export default function QueenBirthdayPage() {
             </p>
           </div>
 
-          {/* Narrative */}
-          <div className="mt-10 space-y-5 text-[15px] leading-relaxed text-[#6E5862] sm:text-base">
+          {/* Chapter 01 — Makola */}
+          <div className="mt-12 flex items-center gap-3">
+            <span className="font-serif text-sm font-semibold text-[#D6418A]">01</span>
+            <span className="text-xs font-medium uppercase tracking-[0.28em] text-[#C2548A]">
+              Makola Market, Accra
+            </span>
+            <span className="h-px flex-1 bg-[#F0D2DF]" />
+          </div>
+          <div className="mt-6 space-y-5 text-[15px] leading-relaxed text-[#6E5862] sm:text-base">
             <p>
               Queen was just a young lady trying to make ends meet. She wasn&apos;t thinking about supplying the
               world. She simply wanted to sell dresses to feed.
@@ -261,47 +268,13 @@ export default function QueenBirthdayPage() {
             </p>
             <p>
               What started with a few pieces slowly grew into hundreds. Hundreds became thousands. Within a few
-              years, Queensprettydolls Fashion had grown from selling single pieces to moving hundreds, thousands,
-              and eventually tens of thousands of pieces.
+              years, Queensprettydolls Fashion had grown from selling single pieces to moving tens of thousands of
+              pieces.
             </p>
-          </div>
-
-          {/* Moments from the journey */}
-          <div className="mt-12">
-            <p className="text-center text-xs font-medium uppercase tracking-[0.3em] text-[#C2548A]">
-              Moments from the journey
-            </p>
-            <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
-              {[
-                { src: '/images/journey-accra-tudu.png', caption: 'Shipments leaving Accra' },
-                { src: '/images/journey-volta.png', caption: 'Reaching every region' },
-                { src: '/images/journey-accra-ayawaso.png', caption: 'Orders by the hundreds' },
-                { src: '/images/journey-aba.png', caption: 'Sourcing in Aba, Nigeria' },
-                { src: '/images/journey-lagos.png', caption: 'On the road — Lagos' },
-              ].map((shot, i) => (
-                <figure
-                  key={shot.src}
-                  className={`group relative aspect-[3/4] overflow-hidden rounded-xl border border-[#F3D4E2] bg-[#FDEEF4] shadow-[0_20px_40px_-28px_rgba(214,65,138,0.5)] ${
-                    i === 4 ? 'col-span-2 sm:col-span-1' : ''
-                  }`}
-                >
-                  <Image
-                    src={shot.src}
-                    alt={shot.caption}
-                    fill
-                    sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
-                    className="object-cover transition-transform duration-500 group-hover:scale-105"
-                  />
-                  <figcaption className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/65 via-black/25 to-transparent px-3 pb-2.5 pt-8 text-left">
-                    <span className="text-[11px] font-medium leading-tight text-white">{shot.caption}</span>
-                  </figcaption>
-                </figure>
-              ))}
-            </div>
           </div>
 
           {/* Milestone stats */}
-          <div className="mt-12 grid grid-cols-3 gap-3 sm:gap-5">
+          <div className="mt-10 grid grid-cols-3 gap-3 sm:gap-5">
             {[
               { value: '7', label: 'Years & counting' },
               { value: '4', label: 'Countries reached' },
@@ -318,9 +291,114 @@ export default function QueenBirthdayPage() {
               </div>
             ))}
           </div>
+        </div>
 
-          {/* Journey timeline */}
-          <div className="mt-12">
+        {/* Chapter 02 — Our own factory (wider, image-led) */}
+        <div className="mx-auto mt-16 max-w-5xl px-5 sm:mt-20">
+          <div className="mx-auto max-w-3xl">
+            <div className="flex items-center gap-3">
+              <span className="font-serif text-sm font-semibold text-[#D6418A]">02</span>
+              <span className="text-xs font-medium uppercase tracking-[0.28em] text-[#C2548A]">
+                The chapter we always dreamed of
+              </span>
+              <span className="h-px flex-1 bg-[#F0D2DF]" />
+            </div>
+            <h3 className="mt-5 text-center font-serif text-3xl font-semibold leading-tight text-[#3A1E2E] sm:text-4xl">
+              From a market stall to our own factory
+            </h3>
+          </div>
+
+          {/* Hero — Queen on her own factory floor */}
+          <figure className="mx-auto mt-9 w-fit">
+            <div className="bg-white p-3 shadow-[0_45px_90px_-55px_rgba(214,65,138,0.5)]">
+              <div className="border border-[#F3C6DA] p-1.5">
+                <Image
+                  src="/images/story-factory-hero.png"
+                  alt="Queen standing on the floor of Queensprettydolls Fashion Manufacturing Company Ltd"
+                  width={900}
+                  height={900}
+                  className="block h-auto w-full max-w-xl object-cover"
+                />
+              </div>
+            </div>
+            <figcaption className="mx-auto mt-4 max-w-md text-center text-sm leading-relaxed text-[#8A6E7A]">
+              Queen on the floor of her own{' '}
+              <span className="font-medium text-[#5A3A48]">
+                Queensprettydolls Fashion Manufacturing Company Ltd
+              </span>
+            </figcaption>
+          </figure>
+
+          {/* Manufacturing narrative */}
+          <div className="mx-auto mt-10 max-w-2xl space-y-5 text-[15px] leading-relaxed text-[#6E5862] sm:text-base">
+            <p>
+              Year after year, the dream outgrew every border. The business that started on the streets of Accra
+              moved from importing clothes from Togo to creating original designs in Nigeria — and today it has
+              reached China, where Queensprettydolls Fashion manufactures its very own pieces.
+            </p>
+            <p className="font-serif text-lg italic text-[#5A3A48]">
+              This is no longer about reselling. It is about creating — our own designs, our own standards, made for
+              women across the world.
+            </p>
+          </div>
+
+          {/* Editorial collage */}
+          <div className="mt-10 grid grid-cols-2 gap-3 sm:grid-cols-3">
+            {[
+              { src: '/images/story-floor.png', caption: 'On the production floor' },
+              { src: '/images/story-blue-gown.png', caption: 'A new piece taking shape' },
+              { src: '/images/story-machines.png', caption: null },
+              { src: '/images/story-production.png', caption: 'Thousands of pieces, ready to ship' },
+              { src: '/images/story-portrait-1.png', caption: null },
+              { src: '/images/story-denim.png', caption: null },
+            ].map((shot) => (
+              <figure
+                key={shot.src}
+                className="group relative aspect-[3/4] overflow-hidden rounded-xl border border-[#F3D4E2] bg-[#FDEEF4] shadow-[0_20px_40px_-28px_rgba(214,65,138,0.5)]"
+              >
+                <Image
+                  src={shot.src}
+                  alt={shot.caption || 'Inside the Queensprettydolls Fashion factory'}
+                  fill
+                  sizes="(max-width: 640px) 50vw, 33vw"
+                  className="object-cover transition-transform duration-500 group-hover:scale-105"
+                />
+                {shot.caption && (
+                  <figcaption className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 via-black/25 to-transparent px-3 pb-2.5 pt-9 text-left">
+                    <span className="text-[11px] font-medium leading-tight text-white">{shot.caption}</span>
+                  </figcaption>
+                )}
+              </figure>
+            ))}
+          </div>
+
+          {/* Team moment */}
+          <div className="mt-3 grid gap-3 sm:grid-cols-2">
+            <div className="relative aspect-[4/3] overflow-hidden rounded-xl border border-[#F3D4E2] bg-[#FDEEF4] sm:aspect-auto sm:min-h-[18rem]">
+              <Image
+                src="/images/story-team.png"
+                alt="Queen with her manufacturing team in China"
+                fill
+                sizes="(max-width: 640px) 100vw, 50vw"
+                className="object-cover object-top"
+              />
+            </div>
+            <div className="flex flex-col justify-center rounded-xl border border-[#F3D4E2] bg-[#FDEEF4] p-7 text-center sm:text-left">
+              <i className="ri-team-line text-2xl text-[#D6418A]" />
+              <p className="mt-4 font-serif text-xl italic leading-snug text-[#5A3A48]">
+                &ldquo;Behind every dress is a team that believes in the vision.&rdquo;
+              </p>
+              <p className="mt-3 text-sm leading-relaxed text-[#8A6E7A]">
+                With the partners and makers in China who bring each Queensprettydolls design to life — proof of how
+                far one small dream can travel.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Timeline + closing + pull-quote */}
+        <div className="mx-auto max-w-3xl px-5 pb-16 pt-16 sm:pb-20 sm:pt-20 lg:pb-24">
+          <div>
             <p className="text-center text-xs font-medium uppercase tracking-[0.3em] text-[#C2548A]">
               From the streets of Accra to the world
             </p>
