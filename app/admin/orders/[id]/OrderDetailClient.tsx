@@ -1,9 +1,10 @@
 'use client';
 
 import Link from 'next/link';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Fragment } from 'react';
 import { supabase } from '@/lib/supabase';
 import FraudDetectionAlert from '@/components/FraudDetectionAlert';
+import { measurementLines } from '@/lib/measurements';
 
 interface OrderDetailClientProps {
   orderId: string;
@@ -324,14 +325,29 @@ export default function OrderDetailClient({ orderId }: OrderDetailClientProps) {
                 </tr>
               </thead>
               <tbody>
-                {order?.order_items?.map((item: any) => (
-                  <tr key={item.id} className="border-b border-gray-200">
+                {order?.order_items?.map((item: any) => {
+                  const mLines = measurementLines(item.metadata?.measurements);
+                  return (
+                  <Fragment key={item.id}>
+                  <tr className={`border-b border-gray-200 ${mLines.length > 0 ? 'border-b-0' : ''}`}>
                     <td className="py-2 px-2 font-medium">{item.product_name}</td>
                     <td className="py-2 px-2 text-sm">{item.variant_name || '-'}</td>
                     <td className="py-2 px-2 text-center font-bold">{item.quantity}</td>
                     <td className="py-2 px-2 text-right">GH₵ {item.unit_price?.toFixed(2)}</td>
                   </tr>
-                ))}
+                  {mLines.length > 0 && (
+                    <tr className="border-b border-gray-200">
+                      <td colSpan={4} className="px-2 pb-2">
+                        <div className="border border-gray-400 p-2 text-xs">
+                          <span className="font-bold uppercase">Custom fit:</span>{' '}
+                          {mLines.map((l) => `${l.label} ${l.value}`).join('  ·  ')}
+                        </div>
+                      </td>
+                    </tr>
+                  )}
+                  </Fragment>
+                  );
+                })}
               </tbody>
             </table>
           </div>
@@ -413,6 +429,21 @@ export default function OrderDetailClient({ orderId }: OrderDetailClientProps) {
                       <h3 className="font-semibold text-gray-900 mb-1">{item.product_name}</h3>
                       <p className="text-sm text-gray-600 mb-1">{item.variant_name}</p>
                       <p className="text-xs text-gray-500">SKU: {item.sku}</p>
+                      {measurementLines(item.metadata?.measurements).length > 0 && (
+                        <div className="mt-2 rounded-lg border border-indigo-200 bg-indigo-50 p-3">
+                          <p className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide text-indigo-800">
+                            <i className="ri-ruler-line"></i> Custom Fit — Tailor to these measurements
+                          </p>
+                          <dl className="mt-2 grid grid-cols-2 gap-x-6 gap-y-1 sm:grid-cols-3">
+                            {measurementLines(item.metadata?.measurements).map((line) => (
+                              <div key={line.label} className="flex justify-between gap-2 text-xs">
+                                <dt className="text-indigo-700/80">{line.label}</dt>
+                                <dd className="font-semibold text-indigo-900">{line.value}</dd>
+                              </div>
+                            ))}
+                          </dl>
+                        </div>
+                      )}
                     </div>
                     <div className="text-right">
                       <p className="font-semibold text-gray-900 mb-1">GH₵ {item.unit_price?.toFixed(2)}</p>

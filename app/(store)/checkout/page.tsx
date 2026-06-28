@@ -224,7 +224,8 @@ export default function CheckoutPage() {
           metadata: {
             image: item.image,
             slug: item.slug,
-            preorder_shipping: prodMeta?.preorder_shipping || null
+            preorder_shipping: prodMeta?.preorder_shipping || null,
+            measurements: item.measurements || null
           }
         });
       }

@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { Suspense, useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
+import { measurementLines } from '@/lib/measurements';
 
 function OrderSuccessContent() {
   const searchParams = useSearchParams();
@@ -238,6 +239,21 @@ function OrderSuccessContent() {
                         <p className="text-xs text-amber-700 bg-amber-50 inline-flex items-center gap-1 px-2 py-0.5 rounded mt-1 border border-amber-200">
                           <i className="ri-time-line"></i> {item.metadata.preorder_shipping}
                         </p>
+                      )}
+                      {measurementLines(item.metadata?.measurements).length > 0 && (
+                        <div className="mt-2 rounded-lg border border-emerald-200 bg-emerald-50 p-2.5">
+                          <p className="flex items-center gap-1 text-[11px] font-bold uppercase tracking-wide text-emerald-800">
+                            <i className="ri-ruler-line"></i> Custom fit measurements
+                          </p>
+                          <dl className="mt-1.5 grid grid-cols-2 gap-x-3 gap-y-0.5">
+                            {measurementLines(item.metadata?.measurements).map((line) => (
+                              <div key={line.label} className="flex justify-between gap-2 text-[11px]">
+                                <dt className="text-emerald-700/80">{line.label}</dt>
+                                <dd className="font-medium text-emerald-900">{line.value}</dd>
+                              </div>
+                            ))}
+                          </dl>
+                        </div>
                       )}
                     </div>
                     <p className="font-bold text-gray-900">GH₵{item.unit_price.toFixed(2)}</p>

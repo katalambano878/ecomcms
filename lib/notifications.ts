@@ -1,5 +1,6 @@
 import { Resend } from 'resend';
 import { supabase } from '@/lib/supabase';
+import { measurementLines } from '@/lib/measurements';
 
 const resend = new Resend(process.env.RESEND_API_KEY || 'missing_api_key');
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'admin@store.com';
@@ -70,6 +71,28 @@ function emailInfoRow(label: string, value: string): string {
 <td style="padding:10px 16px;color:#6b7280;font-size:13px;border-bottom:1px solid #f3f4f6;width:40%;">${label}</td>
 <td style="padding:10px 16px;color:#111827;font-size:14px;font-weight:600;border-bottom:1px solid #f3f4f6;">${value}</td>
 </tr>`;
+}
+
+// Custom-fit measurements block (one card per item that has measurements)
+function emailMeasurementsBlock(items: Array<{ product_name?: string; metadata?: any }>): string {
+    const cards = (items || [])
+        .map((item) => {
+            const lines = measurementLines(item.metadata?.measurements);
+            if (lines.length === 0) return '';
+            const rows = lines
+                .map(
+                    (l) =>
+                        `<tr><td style="padding:4px 0;color:#4338ca;font-size:13px;width:55%;">${l.label}</td><td style="padding:4px 0;color:#1e1b4b;font-size:13px;font-weight:700;">${l.value}</td></tr>`
+                )
+                .join('');
+            return `<div style="background-color:#eef2ff;border:1px solid #c7d2fe;border-radius:8px;padding:14px 16px;margin:12px 0;">
+<p style="font-weight:700;color:#3730a3;margin:0 0 8px;font-size:13px;text-transform:uppercase;letter-spacing:0.4px;">&#128207; Custom fit &mdash; ${item.product_name || 'Item'}</p>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0">${rows}</table>
+</div>`;
+        })
+        .filter(Boolean);
+    if (cards.length === 0) return '';
+    return `<div style="margin:20px 0;"><p style="font-weight:700;color:#111827;margin:0 0 4px;font-size:14px;">Made-to-measure details</p>${cards.join('')}</div>`;
 }
 
 // Shipping notes block
@@ -227,14 +250,16 @@ export async function sendOrderConfirmation(order: any) {
 
     console.log(`[Notification] Preparing for Order #${order_number} | Phone: ${phone ? 'Present' : 'Missing'} | Tracking: ${trackingNumber || 'None'}`);
 
-    // Fetch order items to get preorder_shipping info
+    // Fetch order items to get preorder_shipping info + custom-fit measurements
     let shippingNotes: string[] = [];
+    let orderItemsForEmail: Array<{ product_name?: string; metadata?: any }> = [];
     try {
         const { data: items } = await supabase
             .from('order_items')
             .select('product_name, metadata')
             .eq('order_id', id);
         if (items) {
+            orderItemsForEmail = items;
             for (const item of items) {
                 const preorder = item.metadata?.preorder_shipping;
                 if (preorder) {
@@ -245,6 +270,8 @@ export async function sendOrderConfirmation(order: any) {
     } catch (err) {
         console.warn('[Notification] Could not fetch order items for shipping notes');
     }
+
+    const measurementsHtml = emailMeasurementsBlock(orderItemsForEmail);
 
     const shippingNotesSms = shippingNotes.length > 0
         ? ` Note: ${shippingNotes.join('; ')}.`
@@ -266,6 +293,8 @@ export async function sendOrderConfirmation(order: any) {
 </table>
 
 ${emailShippingNotes(shippingNotes)}
+
+${measurementsHtml}
 
 <p style="color:#374151;font-size:14px;line-height:1.6;margin:16px 0;">We're getting your order ready. You'll receive updates as it's processed and packaged.</p>
 
@@ -293,6 +322,8 @@ ${emailButton('Track Your Order', trackingUrl)}
 </table>
 
 ${emailShippingNotes(shippingNotes)}
+
+${measurementsHtml}
 
 ${emailButton('View Order in Admin', `${baseUrl}/admin/orders/${id}`)}
 `, `New order #${order_number} from ${name}`);

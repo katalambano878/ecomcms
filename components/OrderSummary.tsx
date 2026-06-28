@@ -1,10 +1,14 @@
+import { summarizeMeasurements, type CustomMeasurements } from '@/lib/measurements';
+
 interface OrderItem {
   id: string;
+  uid?: string;
   name: string;
   price: number;
   quantity: number;
   image: string;
   variant?: string;
+  measurements?: CustomMeasurements;
 }
 
 interface OrderSummaryProps {
@@ -21,8 +25,10 @@ export default function OrderSummary({ items, subtotal, shipping, tax, total }: 
       <h2 className="text-xl font-bold text-gray-900 mb-6">Order Summary</h2>
 
       <div className="space-y-4 mb-6">
-        {items.map((item) => (
-          <div key={`${item.id}-${item.variant || 'novar'}`} className="flex space-x-4">
+        {items.map((item) => {
+          const measureSummary = summarizeMeasurements(item.measurements);
+          return (
+          <div key={item.uid || `${item.id}-${item.variant || 'novar'}`} className="flex space-x-4">
             <div className="relative w-20 h-20 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
               <img
                 src={item.image}
@@ -36,10 +42,17 @@ export default function OrderSummary({ items, subtotal, shipping, tax, total }: 
             <div className="flex-1">
               <h3 className="font-semibold text-gray-900 text-sm line-clamp-2">{item.name}</h3>
               {item.variant && <p className="text-xs text-gray-500 mt-0.5">{item.variant}</p>}
+              {measureSummary && (
+                <p className="mt-0.5 flex items-start gap-1 text-[11px] text-emerald-700">
+                  <i className="ri-ruler-line mt-0.5"></i>
+                  <span className="line-clamp-2">{measureSummary}</span>
+                </p>
+              )}
               <p className="text-emerald-700 font-bold mt-1">GH₵ {item.price.toFixed(2)}</p>
             </div>
           </div>
-        ))}
+          );
+        })}
       </div>
 
       <div className="border-t border-gray-200 pt-4 space-y-3">

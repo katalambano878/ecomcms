@@ -4,6 +4,7 @@ import { useCart } from '@/context/CartContext';
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePageTitle } from '@/hooks/usePageTitle';
+import { measurementLines } from '@/lib/measurements';
 
 export default function CartPage() {
   usePageTitle('Shopping Bag');
@@ -46,7 +47,7 @@ export default function CartPage() {
           <div className="lg:col-span-8">
             <div className="space-y-8">
               {cart.map((item) => (
-                <div key={`${item.id}-${item.variant || 'default'}`} className="flex gap-6 py-6 border-b border-gray-100 last:border-0 group">
+                <div key={item.uid} className="flex gap-6 py-6 border-b border-gray-100 last:border-0 group">
 
                   {/* Image */}
                   <div className="relative w-24 h-32 md:w-32 md:h-40 flex-shrink-0 bg-gray-50 overflow-hidden">
@@ -70,20 +71,36 @@ export default function CartPage() {
                         <p className="text-xs text-gray-500 uppercase tracking-wide mb-2">{item.variant}</p>
                       )}
                       <p className="text-xs text-gray-400">GH₵{item.price.toFixed(2)} each</p>
+
+                      {measurementLines(item.measurements).length > 0 && (
+                        <div className="mt-3 rounded-lg border border-gray-200 bg-gray-50 p-3">
+                          <p className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wide text-gray-700">
+                            <i className="ri-ruler-line text-gray-500"></i> Made to your measurements
+                          </p>
+                          <dl className="mt-2 grid grid-cols-2 gap-x-4 gap-y-1">
+                            {measurementLines(item.measurements).map((line) => (
+                              <div key={line.label} className="flex justify-between gap-2 text-[11px]">
+                                <dt className="text-gray-500">{line.label}</dt>
+                                <dd className="font-medium text-gray-800">{line.value}</dd>
+                              </div>
+                            ))}
+                          </dl>
+                        </div>
+                      )}
                     </div>
 
                     <div className="flex justify-between items-end mt-4">
                       {/* Quantity */}
                       <div className="flex items-center border border-gray-200">
                         <button
-                          onClick={() => updateQuantity(item.id, Math.max(1, item.quantity - 1), item.variant)}
+                          onClick={() => updateQuantity(item.uid, Math.max(1, item.quantity - 1))}
                           className="w-8 h-8 flex items-center justify-center text-gray-500 hover:bg-gray-50 transition-colors"
                         >
                           <i className="ri-subtract-line text-xs"></i>
                         </button>
                         <span className="w-8 text-center text-xs font-medium">{item.quantity}</span>
                         <button
-                          onClick={() => updateQuantity(item.id, Math.min(item.maxStock, item.quantity + 1), item.variant)}
+                          onClick={() => updateQuantity(item.uid, Math.min(item.maxStock, item.quantity + 1))}
                           className="w-8 h-8 flex items-center justify-center text-gray-500 hover:bg-gray-50 transition-colors"
                           disabled={item.quantity >= item.maxStock}
                         >
@@ -93,7 +110,7 @@ export default function CartPage() {
 
                       {/* Remove */}
                       <button
-                        onClick={() => removeFromCart(item.id, item.variant)}
+                        onClick={() => removeFromCart(item.uid)}
                         className="text-xs text-gray-400 hover:text-red-600 underline font-medium transition-colors"
                       >
                         Remove

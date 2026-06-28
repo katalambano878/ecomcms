@@ -1,8 +1,11 @@
 'use client';
 
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import type { CustomMeasurements } from '@/lib/measurements';
+import { hasMeasurements } from '@/lib/measurements';
 
 export type CartItem = {
+    uid: string; // unique per cart line (lets identical products with different custom fits coexist)
     id: string;
     name: string;
     price: number;
@@ -12,13 +15,17 @@ export type CartItem = {
     slug: string;
     maxStock: number;
     moq?: number; // Minimum Order Quantity
+    measurements?: CustomMeasurements; // optional made-to-measure custom fit
 };
+
+// Callers don't need to provide `uid` — it is generated on add.
+export type NewCartItem = Omit<CartItem, 'uid'> & { uid?: string };
 
 export type CartContextType = {
     cart: CartItem[];
-    addToCart: (item: CartItem) => void;
-    removeFromCart: (itemId: string, variant?: string) => void;
-    updateQuantity: (itemId: string, quantity: number, variant?: string) => void;
+    addToCart: (item: NewCartItem) => void;
+    removeFromCart: (uid: string) => void;
+    updateQuantity: (uid: string, quantity: number) => void;
     clearCart: () => void;
     cartCount: number;
     subtotal: number;
@@ -33,6 +40,13 @@ export type CartContextType = {
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
+function genUid(): string {
+    if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+        return crypto.randomUUID();
+    }
+    return `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+}
+
 export function CartProvider({ children }: { children: ReactNode }) {
     const [cart, setCart] = useState<CartItem[]>([]);
     const [isCartOpen, setIsCartOpen] = useState(false);
@@ -43,7 +57,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
         const savedCart = localStorage.getItem('cart');
         if (savedCart) {
             try {
-                setCart(JSON.parse(savedCart));
+                const parsed = JSON.parse(savedCart);
+                if (Array.isArray(parsed)) {
+                    // Backfill uid for carts saved before per-line ids existed.
+                    setCart(parsed.map((item: CartItem) => ({ ...item, uid: item.uid || genUid() })));
+                }
             } catch (e) {
                 console.error('Failed to parse cart:', e);
             }
@@ -55,33 +73,39 @@ export function CartProvider({ children }: { children: ReactNode }) {
         localStorage.setItem('cart', JSON.stringify(cart));
     }, [cart]);
 
-    const addToCart = (newItem: CartItem) => {
+    const addToCart = (newItem: NewCartItem) => {
         setCart((prevCart) => {
-            const existingItemIndex = prevCart.findIndex(
-                (item) => item.id === newItem.id && item.variant === newItem.variant
-            );
+            // Custom-fit items are unique per set of measurements, so never merge them.
+            if (!hasMeasurements(newItem.measurements)) {
+                const existingItemIndex = prevCart.findIndex(
+                    (item) =>
+                        item.id === newItem.id &&
+                        item.variant === newItem.variant &&
+                        !hasMeasurements(item.measurements)
+                );
 
-            if (existingItemIndex > -1) {
-                const newCart = [...prevCart];
-                newCart[existingItemIndex].quantity += newItem.quantity;
-                return newCart;
-            } else {
-                return [...prevCart, newItem];
+                if (existingItemIndex > -1) {
+                    return prevCart.map((item, i) =>
+                        i === existingItemIndex
+                            ? { ...item, quantity: item.quantity + newItem.quantity }
+                            : item
+                    );
+                }
             }
+
+            return [...prevCart, { ...newItem, uid: newItem.uid || genUid() }];
         });
         setIsCartOpen(true);
     };
 
-    const removeFromCart = (itemId: string, variant?: string) => {
-        setCart((prevCart) => prevCart.filter((item) => !(item.id === itemId && item.variant === variant)));
+    const removeFromCart = (uid: string) => {
+        setCart((prevCart) => prevCart.filter((item) => item.uid !== uid));
     };
 
-    const updateQuantity = (itemId: string, quantity: number, variant?: string) => {
+    const updateQuantity = (uid: string, quantity: number) => {
         setCart((prevCart) =>
             prevCart.map((item) =>
-                item.id === itemId && item.variant === variant
-                    ? { ...item, quantity: Math.max(0, quantity) }
-                    : item
+                item.uid === uid ? { ...item, quantity: Math.max(0, quantity) } : item
             )
         );
     };

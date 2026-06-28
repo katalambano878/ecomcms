@@ -10,6 +10,7 @@ import ProductReviews from '@/components/ProductReviews';
 import { StructuredData, generateProductSchema, generateBreadcrumbSchema } from '@/components/SEOHead';
 import { useCart } from '@/context/CartContext';
 import { usePageTitle } from '@/hooks/usePageTitle';
+import { MEASUREMENT_FIELDS, type MeasurementUnit, type CustomMeasurements } from '@/lib/measurements';
 
 // Helper for color hexes
 function colorNameToHex(name: string): string {
@@ -54,6 +55,12 @@ export default function ProductDetailClient({ slug }: { slug: string }) {
   const [isAdding, setIsAdding] = useState(false);
   const [isBuying, setIsBuying] = useState(false);
   const [selectionHint, setSelectionHint] = useState('');
+
+  // Made-to-measure (custom fit)
+  const [fitMode, setFitMode] = useState<'standard' | 'custom'>('standard');
+  const [measureUnit, setMeasureUnit] = useState<MeasurementUnit>('in');
+  const [measureValues, setMeasureValues] = useState<Record<string, string>>({});
+  const [measureNote, setMeasureNote] = useState('');
 
   // Accordion State
   const [openAccordions, setOpenAccordions] = useState<Record<string, boolean>>({ description: true });
@@ -198,17 +205,40 @@ export default function ProductDetailClient({ slug }: { slug: string }) {
 
   const hasVariants = product?.variants?.length > 0;
   const hasColors = product?.colors?.length > 0;
+  const allowCustom = !!product?.metadata?.allow_custom_measurements;
+  const isCustomFit = allowCustom && fitMode === 'custom';
 
   const needsColorSelection = hasColors && !selectedColor;
-  const needsVariantSelection = hasVariants && !selectedVariant;
+  // In custom-fit mode, the standard size variant is not required (made-to-measure).
+  const needsVariantSelection = hasVariants && !selectedVariant && !isCustomFit;
 
   const activePrice = selectedVariant?.price ?? product?.price ?? 0;
-  const activeStock = selectedVariant ? (selectedVariant.stock ?? selectedVariant.quantity ?? product?.stockCount ?? 0) : (product?.stockCount ?? 0);
+  const variantStock = selectedVariant ? (selectedVariant.stock ?? selectedVariant.quantity ?? product?.stockCount ?? 0) : (product?.stockCount ?? 0);
+  // Custom-fit pieces are made to order, so they are always available to order.
+  const activeStock = isCustomFit ? Math.max(variantStock, 99) : variantStock;
+
+  const buildMeasurements = (): CustomMeasurements => {
+    const values: Record<string, string> = {};
+    for (const field of MEASUREMENT_FIELDS) {
+      const v = (measureValues[field.id] || '').trim();
+      if (v) values[field.id] = v;
+    }
+    return { unit: measureUnit, values, note: measureNote.trim() || undefined };
+  };
 
   const validateSelections = () => {
     if (needsColorSelection) {
       setSelectionHint('Please select a color to continue.');
       return false;
+    }
+    if (isCustomFit) {
+      const missing = MEASUREMENT_FIELDS.filter((f) => f.required && !(measureValues[f.id] || '').trim());
+      if (missing.length > 0) {
+        setSelectionHint(`Please enter your ${missing.map((m) => m.label.toLowerCase()).join(', ')}.`);
+        return false;
+      }
+      setSelectionHint('');
+      return true;
     }
     if (needsVariantSelection) {
       setSelectionHint('Please select a size to continue.');
@@ -223,7 +253,10 @@ export default function ProductDetailClient({ slug }: { slug: string }) {
     if (!validateSelections()) return false;
 
     let variantLabel: string | undefined;
-    if (selectedVariant) {
+    if (isCustomFit) {
+      const color = selectedVariant?.color || selectedColor || '';
+      variantLabel = color ? `${color} / Custom fit` : 'Custom fit';
+    } else if (selectedVariant) {
       const color = selectedVariant.color || selectedColor || '';
       const name = selectedVariant.name || '';
       if (color && name) {
@@ -242,7 +275,8 @@ export default function ProductDetailClient({ slug }: { slug: string }) {
       variant: variantLabel,
       slug: product.slug,
       maxStock: activeStock,
-      moq: product.moq || 1
+      moq: product.moq || 1,
+      measurements: isCustomFit ? buildMeasurements() : undefined,
     });
 
     return true;
@@ -390,7 +424,7 @@ export default function ProductDetailClient({ slug }: { slug: string }) {
                   </div>
                 )}
 
-                {hasVariants && (
+                {hasVariants && !isCustomFit && (
                   <div>
                     <label className="text-xs font-bold uppercase tracking-[0.2em] text-gray-400 mb-4 block">Select Size</label>
                     <div className="grid grid-cols-3 gap-3">
@@ -425,6 +459,97 @@ export default function ProductDetailClient({ slug }: { slug: string }) {
                   </div>
                 )}
 
+                {allowCustom && (
+                  <div>
+                    <label className="text-xs font-bold uppercase tracking-[0.2em] text-gray-400 mb-4 block">Choose Your Fit</label>
+                    <div className="grid grid-cols-2 gap-3">
+                      <button
+                        type="button"
+                        onClick={() => { setFitMode('standard'); setSelectionHint(''); }}
+                        className={`text-left p-4 border transition-all ${fitMode === 'standard' ? 'border-black bg-black text-white' : 'border-gray-200 hover:border-gray-400 text-gray-900'}`}
+                      >
+                        <span className="flex items-center gap-2 text-sm font-bold"><i className="ri-t-shirt-line"></i> Standard Size</span>
+                        <span className={`mt-1 block text-xs ${fitMode === 'standard' ? 'text-white/70' : 'text-gray-500'}`}>Pick a regular size above</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => { setFitMode('custom'); setSelectionHint(''); }}
+                        className={`text-left p-4 border transition-all ${fitMode === 'custom' ? 'border-black bg-black text-white' : 'border-gray-200 hover:border-gray-400 text-gray-900'}`}
+                      >
+                        <span className="flex items-center gap-2 text-sm font-bold"><i className="ri-ruler-line"></i> Custom Fit</span>
+                        <span className={`mt-1 block text-xs ${fitMode === 'custom' ? 'text-white/70' : 'text-gray-500'}`}>Made to your measurements</span>
+                      </button>
+                    </div>
+
+                    {isCustomFit && (
+                      <div className="mt-5 border border-gray-200 p-5">
+                        <div className="flex items-center justify-between gap-4 mb-4">
+                          <p className="text-sm text-gray-600 leading-relaxed">
+                            Enter your measurements for a perfect fit. We&apos;ll tailor this piece exactly to you.
+                          </p>
+                          <div className="flex items-center border border-gray-200 flex-shrink-0">
+                            {(['in', 'cm'] as MeasurementUnit[]).map((u) => (
+                              <button
+                                key={u}
+                                type="button"
+                                onClick={() => setMeasureUnit(u)}
+                                className={`px-3 py-1.5 text-xs font-bold uppercase transition-colors ${measureUnit === u ? 'bg-black text-white' : 'bg-white text-gray-500 hover:text-black'}`}
+                              >
+                                {u}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                          {MEASUREMENT_FIELDS.map((field) => (
+                            <div key={field.id}>
+                              <label htmlFor={`m-${field.id}`} className="block text-[11px] font-semibold text-gray-700 mb-1">
+                                {field.label}{field.required && <span className="text-red-500"> *</span>}
+                              </label>
+                              <div className="relative">
+                                <input
+                                  id={`m-${field.id}`}
+                                  type="text"
+                                  inputMode="decimal"
+                                  value={measureValues[field.id] || ''}
+                                  onChange={(e) => {
+                                    const cleaned = e.target.value.replace(/[^0-9.]/g, '');
+                                    setMeasureValues((prev) => ({ ...prev, [field.id]: cleaned }));
+                                    if (selectionHint) setSelectionHint('');
+                                  }}
+                                  placeholder="0"
+                                  className="w-full border border-gray-200 px-3 py-2.5 pr-9 text-sm focus:outline-none focus:border-black transition-colors"
+                                />
+                                <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400">{measureUnit}</span>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+
+                        <div className="mt-4">
+                          <label htmlFor="m-note" className="block text-[11px] font-semibold text-gray-700 mb-1">
+                            Other measurements / notes <span className="font-normal text-gray-400">(optional)</span>
+                          </label>
+                          <textarea
+                            id="m-note"
+                            value={measureNote}
+                            onChange={(e) => setMeasureNote(e.target.value.slice(0, 500))}
+                            rows={2}
+                            placeholder="e.g. thigh, inseam, preferred fit (slim/relaxed), or anything else we should know"
+                            className="w-full resize-none border border-gray-200 px-3 py-2.5 text-sm focus:outline-none focus:border-black transition-colors"
+                          />
+                        </div>
+
+                        <p className="mt-3 flex items-start gap-1.5 text-[11px] text-gray-500">
+                          <i className="ri-information-line mt-0.5"></i>
+                          Not sure how to measure? Our team will confirm your details before production.
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                )}
+
                 {/* Add to Cart / Buy Now */}
                 <div className="pt-4 space-y-3">
                   <button
@@ -449,7 +574,7 @@ export default function ProductDetailClient({ slug }: { slug: string }) {
                   {selectionHint && (
                     <p className="text-center text-xs text-red-500 tracking-[0.2em] uppercase">{selectionHint}</p>
                   )}
-                  <p className="text-center text-xs text-gray-400 mt-4 uppercase tracking-wider">{activeStock > 0 ? 'In Stock & Ready to Ship' : 'Currently Unavailable'}</p>
+                  <p className="text-center text-xs text-gray-400 mt-4 uppercase tracking-wider">{isCustomFit ? 'Made to Order · Tailored to You' : activeStock > 0 ? 'In Stock & Ready to Ship' : 'Currently Unavailable'}</p>
                 </div>
               </div>
 

@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useEffect } from 'react';
 import { useCart } from '@/context/CartContext';
+import { summarizeMeasurements } from '@/lib/measurements';
 
 interface MiniCartProps {
   isOpen: boolean;
@@ -67,8 +68,10 @@ export default function MiniCart({ isOpen, onClose }: MiniCartProps) {
           ) : (
             <>
               <div className="max-h-[50vh] overflow-y-auto p-5 space-y-4">
-                {cart.map((item) => (
-                  <div key={`${item.id}-${item.variant}`} className="flex space-x-4">
+                {cart.map((item) => {
+                  const measureSummary = summarizeMeasurements(item.measurements);
+                  return (
+                  <div key={item.uid} className="flex space-x-4">
                     <div className="w-16 h-16 rounded-xl overflow-hidden border border-gray-100 flex-shrink-0">
                       <img
                         src={item.image}
@@ -81,11 +84,17 @@ export default function MiniCart({ isOpen, onClose }: MiniCartProps) {
                       {item.variant && (
                         <p className="text-xs text-gray-500 mt-1">Variant: {item.variant}</p>
                       )}
+                      {measureSummary && (
+                        <p className="mt-1 flex items-start gap-1 text-[11px] text-emerald-700">
+                          <i className="ri-ruler-line mt-0.5"></i>
+                          <span className="line-clamp-2">{measureSummary}</span>
+                        </p>
+                      )}
                       <div className="flex items-center justify-between mt-3">
                         <span className="text-sm font-bold text-gray-900">GH₵{item.price.toFixed(2)}</span>
                         <div className="flex items-center border border-gray-200 rounded-full bg-white">
                           <button
-                            onClick={() => updateQuantity(item.id, item.quantity - 1, item.variant)}
+                            onClick={() => updateQuantity(item.uid, item.quantity - 1)}
                             className="w-7 h-7 flex items-center justify-center text-gray-600 hover:text-black transition-colors cursor-pointer"
                           >
                             {item.quantity <= (item.moq || 1) ? (
@@ -96,7 +105,7 @@ export default function MiniCart({ isOpen, onClose }: MiniCartProps) {
                           </button>
                           <span className="w-8 text-center text-sm font-semibold">{item.quantity}</span>
                           <button
-                            onClick={() => updateQuantity(item.id, item.quantity + 1, item.variant)}
+                            onClick={() => updateQuantity(item.uid, item.quantity + 1)}
                             className="w-7 h-7 flex items-center justify-center text-gray-600 hover:text-black transition-colors cursor-pointer disabled:text-gray-300"
                             disabled={item.quantity >= item.maxStock}
                           >
@@ -106,13 +115,14 @@ export default function MiniCart({ isOpen, onClose }: MiniCartProps) {
                       </div>
                     </div>
                     <button
-                      onClick={() => removeFromCart(item.id, item.variant)}
+                      onClick={() => removeFromCart(item.uid)}
                       className="text-gray-400 hover:text-red-500 transition-colors"
                     >
                       <i className="ri-close-line text-lg"></i>
                     </button>
                   </div>
-                ))}
+                  );
+                })}
               </div>
 
               <div className="border-t border-gray-100 p-5 space-y-4 bg-white">

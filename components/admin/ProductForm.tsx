@@ -27,6 +27,7 @@ export default function ProductForm({ initialData, isEditMode = false }: Product
     const [status, setStatus] = useState(initialData?.status || 'Active');
     const [featured, setFeatured] = useState(initialData?.featured || false);
     const [preorderShipping, setPreorderShipping] = useState(initialData?.metadata?.preorder_shipping || '');
+    const [allowCustomMeasurements, setAllowCustomMeasurements] = useState(!!initialData?.metadata?.allow_custom_measurements);
     const [activeTab, setActiveTab] = useState('general');
 
     // Auto-generate SKU function
@@ -295,8 +296,10 @@ export default function ProductForm({ initialData, isEditMode = false }: Product
                 seo_description: metaDescription,
                 tags: (keywords as string).split(',').map((k: string) => k.trim()).filter(Boolean),
                 metadata: {
+                    ...(initialData?.metadata || {}),
                     low_stock_threshold: parseInt(lowStockThreshold) || 5,
-                    preorder_shipping: preorderShipping.trim() || null
+                    preorder_shipping: preorderShipping.trim() || null,
+                    allow_custom_measurements: allowCustomMeasurements
                 }
             };
 
@@ -541,6 +544,24 @@ export default function ProductForm({ initialData, isEditMode = false }: Product
                                     className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all"
                                 />
                                 <p className="text-xs text-gray-500 mt-1">Leave empty if product ships immediately. Otherwise, enter estimated shipping time.</p>
+                            </div>
+
+                            <div className="rounded-xl border border-gray-200 p-4">
+                                <div className="flex items-start gap-3">
+                                    <input
+                                        type="checkbox"
+                                        id="allow-custom-measurements"
+                                        checked={allowCustomMeasurements}
+                                        onChange={(e) => setAllowCustomMeasurements(e.target.checked)}
+                                        className="mt-1 w-5 h-5 text-emerald-700 border-gray-300 rounded focus:ring-emerald-500 cursor-pointer"
+                                    />
+                                    <label htmlFor="allow-custom-measurements" className="cursor-pointer">
+                                        <span className="block text-gray-900 font-medium">Allow custom measurements (made-to-measure)</span>
+                                        <span className="block text-xs text-gray-500 mt-1">
+                                            Lets customers enter their own bust, waist, hips, height and more for a perfect fit during checkout. Ideal for ready-to-wear African print outfits.
+                                        </span>
+                                    </label>
+                                </div>
                             </div>
                         </div>
                     )}
