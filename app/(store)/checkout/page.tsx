@@ -310,14 +310,12 @@ export default function CheckoutPage() {
 
   if (cart.length === 0 && !isLoading) {
     return (
-      <main className="min-h-screen bg-gray-50 py-20">
-        <div className="max-w-md mx-auto text-center px-4">
-          <div className="w-24 h-24 bg-white rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm">
-            <i className="ri-shopping-cart-line text-4xl text-gray-300"></i>
-          </div>
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Your cart is empty</h1>
-          <p className="text-gray-600 mb-8">Add some items to start the checkout process.</p>
-          <Link href="/shop" className="inline-block bg-emerald-700 text-white px-8 py-3 rounded-lg font-semibold hover:bg-emerald-800 transition-colors">
+      <main className="flex min-h-screen items-center justify-center bg-[#301616] px-4 py-20 text-white">
+        <div className="max-w-md text-center">
+          <i className="ri-shopping-bag-line text-4xl text-white/40"></i>
+          <h1 className="mt-6 font-serif text-3xl">Your cart is empty</h1>
+          <p className="mt-3 text-sm text-white/60">Add a piece to begin checkout.</p>
+          <Link href="/shop" className="mt-8 inline-block border border-white/50 px-8 py-3 text-xs uppercase tracking-[0.18em] hover:bg-white hover:text-[#301616]">
             Return to Shop
           </Link>
         </div>
@@ -326,7 +324,7 @@ export default function CheckoutPage() {
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-emerald-50/40 via-white to-white py-10 pt-28 lg:pt-12 overflow-x-hidden">
+    <main className="atelier-flow min-h-screen overflow-x-hidden py-8 lg:py-12">
       <div className="max-w-6xl mx-auto px-4 space-y-8">
         <div className="flex flex-col md:flex-row gap-4 md:items-center md:justify-between">
           <Link

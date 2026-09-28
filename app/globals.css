@@ -3,6 +3,105 @@
 @tailwind components;
 @tailwind utilities;
 
+@keyframes atelier-marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+.atelier-marquee {
+  animation: atelier-marquee 32s linear infinite;
+}
+
+.atelier-flow {
+  background: #301616;
+  color: #fff;
+}
+.atelier-flow .bg-white,
+.atelier-flow .bg-white\/95 {
+  background-color: transparent;
+}
+.atelier-flow .text-slate-900,
+.atelier-flow .text-slate-800,
+.atelier-flow .text-slate-700,
+.atelier-flow .text-slate-600,
+.atelier-flow .text-gray-900,
+.atelier-flow .text-gray-700 {
+  color: rgba(255, 255, 255, 0.92);
+}
+.atelier-flow .text-slate-500,
+.atelier-flow .text-slate-400,
+.atelier-flow .text-gray-600,
+.atelier-flow .text-gray-500,
+.atelier-flow .text-gray-400 {
+  color: rgba(255, 255, 255, 0.62);
+}
+.atelier-flow .text-emerald-700,
+.atelier-flow .text-emerald-600,
+.atelier-flow .text-emerald-500 {
+  color: #fff;
+}
+.atelier-flow .border-slate-200,
+.atelier-flow .border-emerald-100,
+.atelier-flow .border-emerald-200,
+.atelier-flow .border-gray-200 {
+  border-color: rgba(255, 255, 255, 0.18);
+}
+.atelier-flow .bg-slate-50,
+.atelier-flow .bg-emerald-50,
+.atelier-flow .bg-gray-50,
+.atelier-flow .bg-gray-100 {
+  background-color: rgba(255, 255, 255, 0.04);
+}
+.atelier-flow .bg-emerald-600,
+.atelier-flow .bg-emerald-700,
+.atelier-flow .bg-emerald-800 {
+  background-color: #fff;
+  color: #301616;
+}
+.atelier-flow .bg-gradient-to-br,
+.atelier-flow .bg-gradient-to-r,
+.atelier-flow .bg-gradient-to-b {
+  background-image: none;
+}
+.atelier-flow .shadow-xl,
+.atelier-flow .shadow-lg,
+.atelier-flow .shadow-sm,
+.atelier-flow .shadow-inner,
+.atelier-flow .shadow-emerald-100,
+.atelier-flow .shadow-emerald-50\/40 {
+  box-shadow: none;
+}
+.atelier-flow .bg-gray-200 {
+  background-color: rgba(255, 255, 255, 0.12);
+  color: #fff;
+}
+.atelier-flow .from-emerald-600,
+.atelier-flow .to-emerald-700,
+.atelier-flow .to-emerald-800 {
+  --tw-gradient-from: #fff;
+  --tw-gradient-to: #fff;
+  background-image: none;
+  background-color: #fff;
+  color: #301616;
+}
+.atelier-flow input,
+.atelier-flow select,
+.atelier-flow textarea {
+  background-color: transparent;
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.35);
+  border-radius: 0;
+}
+.atelier-flow input::placeholder,
+.atelier-flow textarea::placeholder {
+  color: rgba(255, 255, 255, 0.4);
+}
+.atelier-flow .rounded-3xl,
+.atelier-flow .rounded-2xl,
+.atelier-flow .rounded-xl {
+  border-radius: 0;
+}
+
 /* ========================================
    ANIMATIONS & EFFECTS
    ======================================== */

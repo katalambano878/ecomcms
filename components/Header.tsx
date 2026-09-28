@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import MiniCart from './MiniCart';
 import { useCart } from '@/context/CartContext';
 import { supabase } from '@/lib/supabase';
@@ -9,6 +10,8 @@ import { useCMS } from '@/context/CMSContext';
 import AnnouncementBar from './AnnouncementBar';
 
 export default function Header() {
+  const pathname = usePathname();
+  const isAtelierHome = pathname === '/' || pathname.startsWith('/product') || pathname === '/checkout' || pathname === '/cart';
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -67,10 +70,76 @@ export default function Header() {
     }
   };
 
+  const atelierNav = [{ label: 'Home', href: '/' }, ...navLinks];
+
   return (
     <>
-      <AnnouncementBar />
+      {!isAtelierHome && <AnnouncementBar />}
 
+      {isAtelierHome ? (
+        <header className={`z-50 text-white ${pathname === '/' ? 'fixed inset-x-0 top-0' : 'sticky top-0 border-b border-white/10 bg-[#301616]'}`}>
+          <nav aria-label="Main navigation" className="grid h-[72px] grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-3 px-4 sm:px-6 lg:px-8">
+            <div className="flex min-w-0 items-center gap-5">
+              <button
+                className="lg:hidden"
+                onClick={() => setIsMobileMenuOpen(true)}
+                aria-label="Open menu"
+              >
+                <i className="ri-menu-line text-xl"></i>
+              </button>
+              <div className="hidden lg:flex min-w-0 items-center gap-4 overflow-hidden">
+                {atelierNav.map((link) => (
+                  <Link
+                    key={link.href + link.label}
+                    href={link.href}
+                    className="shrink-0 text-[10px] uppercase tracking-[0.14em] text-white/90 hover:text-white transition-colors"
+                  >
+                    {link.label}
+                  </Link>
+                ))}
+              </div>
+            </div>
+
+            <Link
+              href="/"
+              className="justify-self-center px-3 font-serif text-[18px] uppercase tracking-[0.18em] text-white sm:text-[22px]"
+              aria-label={siteName}
+            >
+              {(siteName.split(/\s+/)[0] || siteName).replace(/prettydolls/i, '') || siteName}
+            </Link>
+
+            <div className="flex items-center justify-end gap-4 sm:gap-5">
+              <span className="hidden sm:inline text-[11px] uppercase tracking-[0.18em] text-white/80">GHS</span>
+              {showSearch && (
+                <button onClick={() => setIsSearchOpen(true)} aria-label="Open search" className="text-white">
+                  <i className="ri-search-line text-lg"></i>
+                </button>
+              )}
+              {showAccount && (
+                <Link href={user ? '/account' : '/auth/login'} aria-label={user ? 'My account' : 'Login'} className="hidden sm:inline text-white">
+                  <i className="ri-user-line text-lg"></i>
+                </Link>
+              )}
+              {showCart && (
+                <button
+                  onClick={() => setIsCartOpen(!isCartOpen)}
+                  aria-label={`Shopping cart, ${cartCount} items`}
+                  aria-expanded={isCartOpen}
+                  className="relative text-white"
+                >
+                  <i className="ri-shopping-bag-line text-lg"></i>
+                  {cartCount > 0 && (
+                    <span className="absolute -top-2 -right-2 min-w-[16px] h-4 px-1 bg-white text-[#301616] text-[10px] leading-4 text-center rounded-full">
+                      {cartCount}
+                    </span>
+                  )}
+                </button>
+              )}
+            </div>
+          </nav>
+          {showCart && <MiniCart isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />}
+        </header>
+      ) : (
       <header className="sticky top-0 z-50 shadow-sm">
         <div className="backdrop-blur bg-white/90 border-b border-slate-200">
           <nav aria-label="Main navigation" className="max-w-7xl mx-auto px-4 sm:px-6">
@@ -191,6 +260,7 @@ export default function Header() {
         </div>
 
       </header>
+      )}
 
       {isSearchOpen && (
         <div className="fixed inset-0 z-[60] bg-black/40 backdrop-blur-sm flex items-start justify-center pt-20 px-4">

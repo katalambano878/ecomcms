@@ -23,12 +23,12 @@ export default function CartPage() {
 
   if (cart.length === 0) {
     return (
-      <div className="min-h-[70vh] flex flex-col items-center justify-center p-4 text-center bg-white">
-        <h1 className="font-serif text-3xl md:text-4xl text-gray-900 mb-6">Your bag is empty</h1>
-        <p className="text-gray-500 mb-8 max-w-md font-light">Looks like you haven't added any luxury pieces to your collection yet.</p>
+      <div className="flex min-h-[70vh] flex-col items-center justify-center bg-[#301616] p-4 text-center text-white">
+        <h1 className="mb-4 font-serif text-3xl md:text-4xl">Your bag is empty</h1>
+        <p className="mb-8 max-w-md font-light text-white/60">Nothing here yet. The collection is waiting.</p>
         <Link
           href="/shop"
-          className="inline-flex items-center justify-center bg-gray-900 text-white px-10 py-4 text-xs font-bold uppercase tracking-[0.2em] hover:bg-emerald-800 transition-colors shadow-lg"
+          className="inline-flex items-center justify-center border border-white/50 px-10 py-4 text-xs uppercase tracking-[0.2em] hover:bg-white hover:text-[#301616]"
         >
           Continue Shopping
         </Link>
@@ -37,9 +37,9 @@ export default function CartPage() {
   }
 
   return (
-    <main className="min-h-screen bg-white py-12 md:py-20">
+    <main className="min-h-screen bg-[#301616] py-12 text-white md:py-16">
       <div className="max-w-7xl mx-auto px-4 sm:px-6">
-        <h1 className="font-serif text-3xl md:text-4xl text-gray-900 mb-12 text-center md:text-left">Shopping Bag ({cart.reduce((acc, item) => acc + item.quantity, 0)})</h1>
+        <h1 className="mb-12 text-center font-serif text-3xl uppercase tracking-[0.12em] md:text-left md:text-4xl">Shopping Bag ({cart.reduce((acc, item) => acc + item.quantity, 0)})</h1>
 
         <div className="grid lg:grid-cols-12 gap-12 lg:gap-24">
 
@@ -47,10 +47,10 @@ export default function CartPage() {
           <div className="lg:col-span-8">
             <div className="space-y-8">
               {cart.map((item) => (
-                <div key={item.uid} className="flex gap-6 py-6 border-b border-gray-100 last:border-0 group">
+                <div key={item.uid} className="group flex gap-6 border-b border-white/10 py-6 last:border-0">
 
                   {/* Image */}
-                  <div className="relative w-24 h-32 md:w-32 md:h-40 flex-shrink-0 bg-gray-50 overflow-hidden">
+                  <div className="relative h-32 w-24 flex-shrink-0 overflow-hidden bg-white/5 md:h-40 md:w-32">
                     <Image
                       src={item.image}
                       alt={item.name}
@@ -63,25 +63,25 @@ export default function CartPage() {
                   <div className="flex-1 flex flex-col justify-between">
                     <div>
                       <div className="flex justify-between items-start mb-2">
-                        <h3 className="font-serif text-lg text-gray-900 line-clamp-2 pr-4">{item.name}</h3>
-                        <p className="font-medium text-gray-900">GH₵{(item.price * item.quantity).toFixed(2)}</p>
+                        <h3 className="line-clamp-2 pr-4 font-serif text-lg uppercase tracking-wide">{item.name}</h3>
+                        <p className="font-medium">GH₵{(item.price * item.quantity).toFixed(2)}</p>
                       </div>
 
                       {item.variant && (
-                        <p className="text-xs text-gray-500 uppercase tracking-wide mb-2">{item.variant}</p>
+                        <p className="mb-2 text-xs uppercase tracking-wide text-white/55">{item.variant}</p>
                       )}
-                      <p className="text-xs text-gray-400">GH₵{item.price.toFixed(2)} each</p>
+                      <p className="text-xs text-white/45">GH₵{item.price.toFixed(2)} each</p>
 
                       {measurementLines(item.measurements).length > 0 && (
-                        <div className="mt-3 rounded-lg border border-gray-200 bg-gray-50 p-3">
-                          <p className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wide text-gray-700">
-                            <i className="ri-ruler-line text-gray-500"></i> Made to your measurements
+                        <div className="mt-3 border border-white/15 p-3">
+                          <p className="flex items-center gap-1.5 text-[11px] font-medium uppercase tracking-wide text-white/80">
+                            <i className="ri-ruler-line text-white/50"></i> Made to your measurements
                           </p>
                           <dl className="mt-2 grid grid-cols-2 gap-x-4 gap-y-1">
                             {measurementLines(item.measurements).map((line) => (
                               <div key={line.label} className="flex justify-between gap-2 text-[11px]">
-                                <dt className="text-gray-500">{line.label}</dt>
-                                <dd className="font-medium text-gray-800">{line.value}</dd>
+                                <dt className="text-white/50">{line.label}</dt>
+                                <dd className="font-medium text-white">{line.value}</dd>
                               </div>
                             ))}
                           </dl>
@@ -91,17 +91,17 @@ export default function CartPage() {
 
                     <div className="flex justify-between items-end mt-4">
                       {/* Quantity */}
-                      <div className="flex items-center border border-gray-200">
+                      <div className="flex items-center border border-white/30">
                         <button
                           onClick={() => updateQuantity(item.uid, Math.max(1, item.quantity - 1))}
-                          className="w-8 h-8 flex items-center justify-center text-gray-500 hover:bg-gray-50 transition-colors"
+                          className="flex h-8 w-8 items-center justify-center text-white/70 hover:bg-white/10"
                         >
                           <i className="ri-subtract-line text-xs"></i>
                         </button>
                         <span className="w-8 text-center text-xs font-medium">{item.quantity}</span>
                         <button
                           onClick={() => updateQuantity(item.uid, Math.min(item.maxStock, item.quantity + 1))}
-                          className="w-8 h-8 flex items-center justify-center text-gray-500 hover:bg-gray-50 transition-colors"
+                          className="flex h-8 w-8 items-center justify-center text-white/70 hover:bg-white/10"
                           disabled={item.quantity >= item.maxStock}
                         >
                           <i className="ri-add-line text-xs"></i>
@@ -111,7 +111,7 @@ export default function CartPage() {
                       {/* Remove */}
                       <button
                         onClick={() => removeFromCart(item.uid)}
-                        className="text-xs text-gray-400 hover:text-red-600 underline font-medium transition-colors"
+                        className="text-xs text-white/50 underline hover:text-white"
                       >
                         Remove
                       </button>
@@ -122,7 +122,7 @@ export default function CartPage() {
             </div>
 
             <div className="mt-8">
-              <Link href="/shop" className="text-xs font-bold uppercase tracking-widest border-b border-transparent hover:border-black pb-1 hover:text-gray-600 transition-colors">
+              <Link href="/shop" className="border-b border-transparent pb-1 text-xs uppercase tracking-widest text-white/70 hover:border-white hover:text-white">
                 <i className="ri-arrow-left-line mr-2"></i> Continue Shopping
               </Link>
             </div>
@@ -130,20 +130,20 @@ export default function CartPage() {
 
           {/* Order Summary */}
           <div className="lg:col-span-4">
-            <div className="bg-gray-50 p-8 sticky top-24">
-              <h2 className="font-serif text-2xl text-gray-900 mb-6">Order Summary</h2>
+            <div className="sticky top-24 border border-white/15 p-8">
+              <h2 className="mb-6 font-serif text-2xl">Order Summary</h2>
 
-              <div className="space-y-4 mb-8 text-sm text-gray-600">
+              <div className="mb-8 space-y-4 text-sm text-white/70">
                 <div className="flex justify-between">
                   <span>Subtotal</span>
-                  <span className="font-medium text-gray-900">GH₵{subtotal.toFixed(2)}</span>
+                  <span className="font-medium text-white">GH₵{subtotal.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Shipping Estimate</span>
-                  <span className="text-gray-400 italic">Calculated at checkout</span>
+                  <span className="italic text-white/40">Calculated at checkout</span>
                 </div>
                 {coupon && (
-                  <div className="flex justify-between text-emerald-700">
+                  <div className="flex justify-between text-white">
                     <span>Discount ({coupon.code})</span>
                     {/* Ensure coupon amount is handled safely */}
                     <span>-GH₵{(coupon.amount || 0).toFixed(2)}</span>
@@ -151,17 +151,17 @@ export default function CartPage() {
                 )}
               </div>
 
-              <div className="border-t border-gray-200 pt-6 mb-8">
-                <div className="flex justify-between items-end">
-                  <span className="text-base font-bold uppercase tracking-wide text-gray-900">Total</span>
-                  <span className="font-serif text-2xl text-gray-900">GH₵{total.toFixed(2)}</span>
+              <div className="mb-8 border-t border-white/15 pt-6">
+                <div className="flex items-end justify-between">
+                  <span className="text-xs uppercase tracking-[0.18em]">Total</span>
+                  <span className="font-serif text-2xl">GH₵{total.toFixed(2)}</span>
                 </div>
-                <p className="text-xs text-gray-500 mt-2">Tax included and shipping calculated at checkout</p>
+                <p className="mt-2 text-xs text-white/45">Shipping is confirmed at checkout</p>
               </div>
 
               <Link
                 href="/checkout"
-                className="block w-full bg-black text-white text-center py-4 text-xs font-bold uppercase tracking-[0.2em] hover:bg-emerald-900 transition-colors shadow-lg mb-6"
+                className="mb-6 block w-full bg-white py-4 text-center text-xs uppercase tracking-[0.2em] text-[#301616] hover:bg-white/90"
               >
                 Proceed to Checkout
               </Link>
@@ -173,14 +173,14 @@ export default function CartPage() {
                     type="text"
                     name="coupon"
                     placeholder="Gift card or discount code"
-                    className="w-full bg-white border border-gray-200 px-4 py-3 text-sm focus:outline-none focus:border-black transition-colors"
+                    className="w-full border border-white/30 bg-transparent px-4 py-3 text-sm text-white placeholder:text-white/40 focus:outline-none"
                   />
-                  <button type="submit" className="absolute right-2 top-1/2 -translate-y-1/2 text-xs font-bold uppercase text-gray-400 hover:text-black px-2 transition-colors">
+                  <button type="submit" className="absolute right-2 top-1/2 -translate-y-1/2 px-2 text-xs uppercase text-white/50 hover:text-white">
                     Apply
                   </button>
                 </form>
                 {coupon && (
-                  <div className="mt-2 text-xs text-emerald-700 flex justify-between items-center">
+                  <div className="mt-2 flex items-center justify-between text-xs text-white/80">
                     <span>Code <strong>{coupon.code}</strong> applied</span>
                     <button onClick={removeCoupon} className="text-red-500 hover:text-red-700"><i className="ri-close-circle-fill"></i></button>
                   </div>
@@ -188,7 +188,7 @@ export default function CartPage() {
               </div>
 
               {/* Trust Badges */}
-              <div className="flex justify-center gap-6 text-gray-400 border-t border-gray-200 pt-6">
+              <div className="flex justify-center gap-6 border-t border-white/15 pt-6 text-white/40">
                 <i className="ri-secure-payment-line text-2xl" title="Secure Payment"></i>
                 <i className="ri-truck-line text-2xl" title="Fast Delivery"></i>
                 <i className="ri-customer-service-2-line text-2xl" title="24/7 Support"></i>

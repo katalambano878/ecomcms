@@ -12,6 +12,8 @@ export default function MobileBottomNav() {
 
   const isActive = (path: string) => pathname === path;
 
+  if (pathname === '/' || pathname.startsWith('/product') || pathname === '/checkout' || pathname === '/cart') return null;
+
   return (
     <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50 safe-area-bottom">
       <div className="grid grid-cols-5 h-16">

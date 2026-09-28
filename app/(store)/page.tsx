@@ -5,241 +5,275 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { supabase } from '@/lib/supabase';
 import { useCMS } from '@/context/CMSContext';
-import ProductCard, { type ColorVariant, getColorHex } from '@/components/ProductCard';
-import AnimatedSection, { AnimatedGrid } from '@/components/AnimatedSection';
 import { usePageTitle } from '@/hooks/usePageTitle';
 
+type Tile = {
+  id: string;
+  name: string;
+  href: string;
+  image: string;
+};
+
+type Look = {
+  id: string;
+  slug: string;
+  name: string;
+  price: number;
+  image: string;
+  hoverImage?: string;
+  variant?: string;
+};
+
+const ATELIER = '#301616';
+
+function money(amount: number) {
+  const rounded = Math.round(amount);
+  const whole = Math.abs(amount - rounded) < 0.001;
+  const value = whole ? rounded.toLocaleString('en-GH') : amount.toLocaleString('en-GH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  return `GH₵${value}`;
+}
+
+function toLook(product: any): Look {
+  const images = [...(product.product_images || [])].sort((a: any, b: any) => (a.position ?? 0) - (b.position ?? 0));
+  const variants = product.product_variants || [];
+  const prices = variants.map((v: any) => Number(v.price)).filter((n: number) => n > 0);
+  const price = prices.length ? Math.min(...prices) : Number(product.price) || 0;
+  return {
+    id: product.id,
+    slug: product.slug || product.id,
+    name: product.name,
+    price,
+    image: images[0]?.url || '',
+    hoverImage: images[1]?.url,
+    variant: variants[0]?.name || undefined,
+  };
+}
+
+function SectionHeading({ title, href, label }: { title: string; href: string; label: string }) {
+  return (
+    <div className="mb-5 flex items-end justify-between gap-4">
+      <h2 className="text-[13px] font-medium uppercase tracking-[0.22em] text-white sm:text-sm">{title}</h2>
+      <Link href={href} className="shrink-0 text-[13px] text-white/80 hover:text-white">
+        {label}
+      </Link>
+    </div>
+  );
+}
+
+function LookCard({ item }: { item: Look }) {
+  return (
+    <Link href={`/product/${item.slug}`} className="group block min-w-0">
+      <div className="relative aspect-[3/4] overflow-hidden bg-[#efeae6]">
+        {item.image ? (
+        <Image src={item.image} alt={item.name} fill className="object-cover" sizes="(max-width: 768px) 70vw, 25vw" />
+        ) : null}
+        {item.hoverImage && (
+          <Image
+            src={item.hoverImage}
+            alt=""
+            fill
+            className="object-cover opacity-0 transition-opacity duration-500 group-hover:opacity-100"
+            sizes="(max-width: 768px) 70vw, 25vw"
+          />
+        )}
+        {item.variant && !/^(xxs|xs|s|m|l|xl|xxl|xxxl|\d+)$/i.test(item.variant.trim()) && (
+          <span className="absolute right-3 top-3 text-[10px] uppercase tracking-[0.16em] text-white drop-shadow">
+            {item.variant}
+          </span>
+        )}
+      </div>
+      <div className="mt-3 text-white">
+        <p className="text-[12px] uppercase tracking-[0.08em]">{item.name}</p>
+        <p className="mt-1 text-[12px] text-white/75">{money(item.price)}</p>
+      </div>
+    </Link>
+  );
+}
+
+function CollectionTile({ tile }: { tile: Tile }) {
+  return (
+    <Link href={tile.href} className="group relative block aspect-[3/4] overflow-hidden bg-black/20">
+      <Image
+        src={tile.image}
+        alt={tile.name}
+        fill
+        className="object-cover transition-transform duration-700 group-hover:scale-[1.04]"
+        sizes="(max-width: 768px) 70vw, 25vw"
+      />
+      <span className="absolute bottom-4 left-4 text-[11px] uppercase tracking-[0.18em] text-white drop-shadow">
+        {tile.name}
+      </span>
+    </Link>
+  );
+}
+
 export default function Home() {
-  const { getSetting, getActiveBanners } = useCMS();
-  const [featuredProducts, setFeaturedProducts] = useState<any[]>([]);
-  const [categories, setCategories] = useState<any[]>([]);
+  const { getSetting } = useCMS();
+  const [looks, setLooks] = useState<Look[]>([]);
+  const [collections, setCollections] = useState<Tile[]>([]);
+  const [categories, setCategories] = useState<Tile[]>([]);
   const [loading, setLoading] = useState(true);
+
+  const siteName = getSetting('site_name')?.trim() || 'Queensprettydolls';
+  const heroHeadline = getSetting('hero_headline')?.trim() || 'Tailored for you';
+  const heroSubheadline = getSetting('hero_subheadline')?.trim() || 'Made to measure. Ready to wear.';
+  const configuredHero = getSetting('hero_image');
+  const heroImage = configuredHero && configuredHero !== '/hero.jpg' ? configuredHero : looks[0]?.image || '';
+
+  usePageTitle(siteName);
 
   useEffect(() => {
     async function fetchData() {
       try {
-        const { data: productsData, error: productsError } = await supabase
-          .from('products')
-          .select('*, product_variants(*), product_images(*)')
-          .eq('status', 'active')
-          .eq('featured', true)
-          .order('created_at', { ascending: false })
-          .limit(8);
+        const [{ data: products }, { data: cats }] = await Promise.all([
+          supabase
+            .from('products')
+            .select('*, product_variants(*), product_images(*)')
+            .eq('status', 'active')
+            .order('created_at', { ascending: false })
+            .limit(12),
+          supabase
+            .from('categories')
+            .select('id, name, slug, image_url, status')
+            .eq('status', 'active')
+            .order('name'),
+        ]);
 
-        if (productsError) throw productsError;
-        setFeaturedProducts(productsData || []);
+        setLooks((products || []).map(toLook));
 
-        const { data: categoriesData, error: categoriesError } = await supabase
-          .from('categories')
-          .select('id, name, slug, image_url, metadata')
-          .eq('status', 'active')
-          .order('name');
-
-        if (categoriesError) throw categoriesError;
-
-        const featuredCategories = (categoriesData || []).filter(
-          (cat: any) => cat.metadata?.featured === true
-        );
-        setCategories(featuredCategories);
+        const tiles: Tile[] = (cats || [])
+          .filter((cat: any) => cat.image_url)
+          .map((cat: any) => ({
+            id: cat.id,
+            name: cat.name,
+            href: `/shop?category=${encodeURIComponent(cat.slug || cat.id)}`,
+            image: cat.image_url,
+          }));
+        setCollections(tiles.slice(0, 4));
+        setCategories(tiles.slice(4, 8).length ? tiles.slice(4, 8) : tiles.slice(0, 4));
       } catch (error) {
-        console.error('Error fetching data:', error);
+        console.error('Error fetching homepage:', error);
       } finally {
         setLoading(false);
       }
     }
-
     fetchData();
   }, []);
 
-  // ── CMS-driven config ────────────────────────────────────────────
-  const siteName = getSetting('site_name')?.trim() || 'Premium Collection';
-  const heroHeadline = getSetting('hero_headline')?.trim() || `${siteName} – Premium Products`;
-  const heroSubheadline =
-    getSetting('hero_subheadline')?.trim() || 'Verified quality products at unbeatable prices.';
-  const heroImage = getSetting('hero_image') || '/hero.jpg';
-  const heroPrimaryText = getSetting('hero_primary_btn_text');
-  const heroPrimaryLink = getSetting('hero_primary_btn_link') || '/shop';
-  const heroSecondaryText = getSetting('hero_secondary_btn_text');
-  const heroSecondaryLink = getSetting('hero_secondary_btn_link') || '/about';
-
-  usePageTitle(heroHeadline);
-
-  const activeBanners = getActiveBanners('top');
-
-  const renderBanners = () => {
-    if (activeBanners.length === 0) return null;
-    return (
-      <div className="bg-black text-white py-2.5 overflow-hidden relative z-50">
-        <div className="flex animate-marquee whitespace-nowrap">
-          {activeBanners.concat(activeBanners).map((banner, index) => (
-            <span key={index} className="mx-12 text-xs uppercase tracking-[0.2em] font-medium flex items-center">
-              {banner.title}
-            </span>
-          ))}
-        </div>
-      </div>
-    );
-  };
+  const newest = looks.slice(0, 4);
+  const coveted = looks.slice(4, 8);
+  const marquee = (heroHeadline || 'Tailored for you').toUpperCase();
+  const wordmark = siteName.length > 18 ? siteName.split(' ')[0] : siteName;
 
   return (
-    <main className="flex-col min-h-screen bg-white text-gray-900 selection:bg-black selection:text-white">
-      {renderBanners()}
-
-      {/* Hero Section - Immersive */}
-      <section className="relative w-full min-h-[75vh] md:h-[90vh] overflow-hidden">
-        <Image
-          src={heroImage}
-          fill
-          className="object-cover object-[20%_center] sm:object-center"
-          alt="Luxury Wigs"
-          priority
-          sizes="100vw"
-          quality={90}
-        />
-        <div className="absolute inset-0 bg-black/20" /> {/* Subtle overlay for text readability */}
-
-        <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-4">
-          <AnimatedSection className="max-w-4xl mx-auto space-y-8">
-            <span className="inline-block py-1 px-3 border border-white/30 text-white text-[10px] uppercase tracking-[0.3em] backdrop-blur-sm">
-              The Premium Collection
-            </span>
-            <h1 className="font-serif text-5xl md:text-7xl lg:text-8xl text-white leading-tight drop-shadow-sm">
-              {heroHeadline}
-            </h1>
-            <p className="text-lg md:text-xl text-white/90 font-light max-w-xl mx-auto tracking-wide">
-              {heroSubheadline}
-            </p>
-            <div className="flex flex-col sm:flex-row gap-6 justify-center pt-8">
-              <Link href={heroPrimaryLink} className="bg-white text-black px-10 py-4 text-xs font-bold uppercase tracking-[0.2em] hover:bg-black hover:text-white transition-colors duration-300 min-w-[200px]">
-                {heroPrimaryText}
-              </Link>
-              {heroSecondaryText && (
-                <Link href={heroSecondaryLink} className="bg-transparent border border-white text-white px-10 py-4 text-xs font-bold uppercase tracking-[0.2em] hover:bg-white hover:text-black transition-colors duration-300 min-w-[200px]">
-                  {heroSecondaryText}
-                </Link>
-              )}
-            </div>
-          </AnimatedSection>
+    <main className="bg-[#301616] text-white">
+      <section className="relative h-[100svh] min-h-[560px] w-full overflow-hidden bg-black">
+        {heroImage ? (
+        <Image src={heroImage} alt="" fill priority className="object-cover object-center" sizes="100vw" quality={90} />
+        ) : null}
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-black/45 to-transparent" />
+        <div className="absolute inset-x-0 bottom-6 flex items-end justify-between gap-6 px-5 sm:px-8">
+          <p className="text-[12px] text-white/95 sm:text-sm">{siteName}</p>
+          <p className="max-w-[14rem] text-right text-[12px] text-white/95 sm:max-w-none sm:text-sm">{heroSubheadline}</p>
         </div>
       </section>
 
-      {/* Texture/Category Shop - Minimalist Grid */}
-      <section className="py-24 px-4 bg-white">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16 space-y-4">
-            <h2 className="font-serif text-3xl md:text-4xl">Shop by Collection</h2>
-            <div className="w-12 h-0.5 bg-black mx-auto"></div>
-          </div>
-
-          <AnimatedGrid className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {categories.slice(0, 3).map((category, idx) => (
-              <Link href={`/shop?category=${category.slug}`} key={category.id} className="group block relative aspect-[4/5] overflow-hidden bg-gray-100">
-                <Image
-                  src={category.image || category.image_url || 'https://via.placeholder.com/600x800'}
-                  alt={category.name}
-                  fill
-                  className="object-cover transition-transform duration-1000 group-hover:scale-110"
-                  sizes="(max-width: 768px) 100vw, 33vw"
-                />
-                <div className="absolute inset-0 bg-black/10 group-hover:bg-black/20 transition-colors" />
-                <div className="absolute bottom-8 left-8 text-white">
-                  <h3 className="font-serif text-3xl mb-2">{category.name}</h3>
-                  <span className="text-[10px] uppercase tracking-widest border-b border-transparent group-hover:border-white transition-colors pb-1">Explore</span>
-                </div>
-              </Link>
-            ))}
-          </AnimatedGrid>
-
-          <div className="text-center mt-12">
-            <Link href="/categories" className="text-xs font-bold uppercase tracking-[0.2em] border-b border-black pb-1 hover:text-gray-600 hover:border-gray-600 transition-colors">
-              View All Collections
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      {/* New Arrivals - Horizontal Scroll or Grid */}
-      <section className="py-24 bg-stone-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6">
-          <div className="flex justify-between items-end mb-12">
-            <div>
-              <span className="text-[10px] uppercase tracking-[0.2em] text-gray-500 mb-2 block">Fresh Drops</span>
-              <h2 className="font-serif text-3xl md:text-4xl text-gray-900">New Arrivals</h2>
-            </div>
-            <Link href="/shop?sort=new" className="hidden md:block text-xs uppercase tracking-widest border-b border-gray-300 pb-1 hover:border-black transition-colors">
-              View All
-            </Link>
-          </div>
-
+      <div className="mx-auto max-w-[1440px] px-4 py-12 sm:px-6 sm:py-16">
+        <section>
+          <SectionHeading title="New Arrivals" href="/shop?sort=new" label="Discover more >" />
           {loading ? (
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-x-6 gap-y-10">
-              {[...Array(4)].map((_, i) => (
-                <div key={i} className="animate-pulse">
-                  <div className="bg-gray-200 aspect-[3/4] mb-4"></div>
-                  <div className="h-4 bg-gray-200 w-3/4 mb-2"></div>
-                  <div className="h-3 bg-gray-200 w-1/2"></div>
-                </div>
+            <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+              {[0, 1, 2, 3].map((i) => (
+                <div key={i} className="aspect-[3/4] animate-pulse bg-white/10" />
               ))}
             </div>
           ) : (
-            <AnimatedGrid className="grid grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-12">
-              {featuredProducts.map((product) => {
-                // Format product for ProductCard
-                // Copied logic from previous file to ensure compatibility
-                const variants = product.product_variants || [];
-                const hasVariants = variants.length > 0;
-                const minVariantPrice = hasVariants ? Math.min(...variants.map((v: any) => v.price || product.price)) : undefined;
-                const totalVariantStock = hasVariants ? variants.reduce((sum: number, v: any) => sum + (v.quantity || 0), 0) : 0;
-                const effectiveStock = hasVariants ? totalVariantStock : product.quantity;
-
-                const colorVariants: ColorVariant[] = [];
-                const seenColors = new Set<string>();
-                for (const v of variants) {
-                  const colorName = (v as any).option2;
-                  if (colorName && !seenColors.has(colorName.toLowerCase().trim())) {
-                    const hex = getColorHex(colorName);
-                    if (hex) {
-                      seenColors.add(colorName.toLowerCase().trim());
-                      colorVariants.push({ name: colorName.trim(), hex });
-                    }
-                  }
-                }
-
-                return (
-                  <ProductCard
-                    key={product.id}
-                    id={product.id}
-                    slug={product.slug}
-                    name={product.name}
-                    price={product.price}
-                    originalPrice={product.compare_at_price}
-                    image={product.product_images?.[0]?.url || 'https://via.placeholder.com/400x500'}
-                    rating={product.rating_avg || 5}
-                    reviewCount={product.review_count || 0}
-                    badge={product.featured ? 'New' : undefined}
-                    inStock={effectiveStock > 0}
-                    maxStock={effectiveStock || 50}
-                    moq={product.moq || 1}
-                    hasVariants={hasVariants}
-                    minVariantPrice={minVariantPrice}
-                    colorVariants={colorVariants}
-                  />
-                );
-              })}
-            </AnimatedGrid>
+            <div className="grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-4">
+              {newest.map((item) => (
+                <LookCard key={item.id} item={item} />
+              ))}
+            </div>
           )}
+        </section>
 
-          <div className="mt-12 text-center md:hidden">
-            <Link href="/shop" className="text-xs uppercase tracking-widest border-b border-gray-300 pb-1">
-              Shop All
-            </Link>
-          </div>
+        {!loading && coveted.length > 0 && (
+          <section className="mt-16">
+            <SectionHeading title="Most Coveted" href="/shop" label="Discover more >" />
+            <div className="grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-4">
+              {coveted.map((item) => (
+                <LookCard key={`cov-${item.id}`} item={item} />
+              ))}
+            </div>
+          </section>
+        )}
+
+        {collections.length > 0 && (
+          <section className="mt-16">
+            <SectionHeading title="Collections" href="/categories" label="View all >" />
+            <div className="grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-4">
+              {collections.map((tile) => (
+                <CollectionTile key={tile.id} tile={tile} />
+              ))}
+            </div>
+          </section>
+        )}
+
+        {categories.length > 0 && (
+          <section className="mt-16">
+            <SectionHeading title="Categories" href="/categories" label="View all >" />
+            <div className="grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-4">
+              {categories.map((tile) => (
+                <CollectionTile key={`cat-${tile.id}`} tile={tile} />
+              ))}
+            </div>
+          </section>
+        )}
+      </div>
+
+      <section className="relative h-[68vh] min-h-[420px] overflow-hidden bg-black">
+        {heroImage ? (
+        <Image src={heroImage} alt="" fill className="object-cover object-top" sizes="100vw" />
+        ) : null}
+        <div className="absolute inset-0 bg-black/55" />
+        <p className="absolute inset-x-4 top-1/2 -translate-y-1/2 text-center font-serif text-[8vw] uppercase leading-none tracking-tight text-white/90">
+          {wordmark}
+        </p>
+        <div className="absolute inset-x-0 bottom-10 flex items-end justify-between px-6 sm:px-12">
+          <p className="text-sm uppercase tracking-[0.22em] text-white sm:text-base">Made to measure</p>
+          <p className="text-sm uppercase tracking-[0.22em] text-white sm:text-base">One dress at a time</p>
         </div>
       </section>
 
+      <section style={{ backgroundColor: ATELIER }} className="border-t border-white/10">
+        <div className="mx-auto grid max-w-[1200px] grid-cols-2 gap-y-10 px-6 py-14 md:grid-cols-4">
+          {[
+            { icon: 'ri-truck-line', title: 'Express Delivery', text: 'Swift, secure delivery handled with care.' },
+            { icon: 'ri-chat-3-line', title: '24/7 Client Care', text: 'Personal support at every stage of your order.' },
+            { icon: 'ri-heart-line', title: 'Made-To-Order', text: 'Pieces cut to your measurements, made for you.' },
+            { icon: 'ri-flashlight-line', title: 'Limited Availability', text: 'A select number of each style. Once closed, it stays closed.' },
+          ].map((item, index) => (
+            <div key={item.title} className={`px-4 text-center ${index > 0 ? 'md:border-l md:border-white/25' : ''}`}>
+              <i className={`${item.icon} text-2xl text-white/90`}></i>
+              <p className="mt-4 text-[11px] font-medium uppercase tracking-[0.18em]">{item.title}</p>
+              <p className="mx-auto mt-2 max-w-[180px] text-[12px] leading-relaxed text-white/65">{item.text}</p>
+            </div>
+          ))}
+        </div>
+      </section>
 
-
-      {/* Newsletter removed (duplicate) */}
+      <div className="overflow-hidden border-y border-white/15 bg-[#301616] py-4">
+        <div className="atelier-marquee flex w-max">
+          {Array.from({ length: 2 }).map((_, copy) => (
+            <div key={copy} className="flex">
+              {Array.from({ length: 8 }).map((__, i) => (
+                <span key={`${copy}-${i}`} className="px-8 text-[12px] uppercase tracking-[0.28em] text-white/90">
+                  {marquee}
+                </span>
+              ))}
+            </div>
+          ))}
+        </div>
+      </div>
     </main>
   );
 }

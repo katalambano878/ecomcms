@@ -33,3 +33,6 @@ yarn-error.log*
 
 # Vercel
 .vercel
+
+# Supabase local export (may contain customer/PII data)
+supabase-export/

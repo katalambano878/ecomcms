@@ -5,10 +5,10 @@ import Image from 'next/image';
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { cachedQuery } from '@/lib/query-cache';
-import ProductCard from '@/components/ProductCard';
 import ProductReviews from '@/components/ProductReviews';
 import { StructuredData, generateProductSchema, generateBreadcrumbSchema } from '@/components/SEOHead';
 import { useCart } from '@/context/CartContext';
+import { useWishlist } from '@/context/WishlistContext';
 import { usePageTitle } from '@/hooks/usePageTitle';
 import { MEASUREMENT_FIELDS, type MeasurementUnit, type CustomMeasurements } from '@/lib/measurements';
 
@@ -31,13 +31,13 @@ function colorNameToHex(name: string): string {
 }
 
 const AccordionItem = ({ title, isOpen, onClick, children }: { title: string, isOpen: boolean, onClick: () => void, children: React.ReactNode }) => (
-  <div className="border-b border-gray-200 py-2">
-    <button className="w-full py-4 flex justify-between items-center text-left focus:outline-none group" onClick={onClick}>
-      <span className="font-serif text-lg text-gray-900 group-hover:text-gray-600 transition-colors">{title}</span>
-      <i className={`ri-arrow-down-s-line text-xl transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`}></i>
+  <div className="border-b border-white/15">
+    <button className="flex w-full items-center justify-between py-4 text-left" onClick={onClick}>
+      <span className="text-[12px] uppercase tracking-[0.16em] text-white/90">{title}</span>
+      <span className="text-lg leading-none text-white/70">{isOpen ? '−' : '+'}</span>
     </button>
-    <div className={`overflow-hidden transition-all duration-500 ease-in-out ${isOpen ? 'max-h-[500px] opacity-100 pb-6' : 'max-h-0 opacity-0'}`}>
-      <div className="text-gray-500 font-light leading-relaxed">
+    <div className={`overflow-hidden transition-all duration-500 ${isOpen ? 'max-h-[2400px] pb-5 opacity-100' : 'max-h-0 opacity-0'}`}>
+      <div className="text-sm font-light leading-relaxed text-white/70">
         {children}
       </div>
     </div>
@@ -52,6 +52,7 @@ export default function ProductDetailClient({ slug }: { slug: string }) {
   const [selectedColor, setSelectedColor] = useState('');
   const [selectedSize, setSelectedSize] = useState('');
   const [quantity, setQuantity] = useState(1);
+  const [activeImage, setActiveImage] = useState(0);
   const [isAdding, setIsAdding] = useState(false);
   const [isBuying, setIsBuying] = useState(false);
   const [selectionHint, setSelectionHint] = useState('');
@@ -68,6 +69,7 @@ export default function ProductDetailClient({ slug }: { slug: string }) {
   const [relatedProducts, setRelatedProducts] = useState<any[]>([]);
 
   const { addToCart } = useCart();
+  const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
 
   const toggleAccordion = (key: string) => {
     setOpenAccordions(prev => ({ ...prev, [key]: !prev[key] }));
@@ -149,6 +151,7 @@ export default function ProductDetailClient({ slug }: { slug: string }) {
         }
 
         setProduct(transformedProduct);
+        setActiveImage(0);
 
         if (transformedProduct.moq > 1) {
           setQuantity(transformedProduct.moq);
@@ -300,17 +303,17 @@ export default function ProductDetailClient({ slug }: { slug: string }) {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-gray-100 border-t-black rounded-full animate-spin"></div>
+      <div className="flex min-h-screen items-center justify-center bg-[#301616]">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-white/20 border-t-white"></div>
       </div>
     );
   }
 
   if (!product) {
     return (
-      <div className="min-h-screen bg-white py-20 flex flex-col justify-center items-center">
-        <h2 className="text-2xl font-serif text-gray-900 mb-4">Product Not Found</h2>
-        <Link href="/shop" className="text-sm uppercase tracking-widest border-b border-black pb-1 hover:text-gray-600">Return to Shop</Link>
+      <div className="flex min-h-screen flex-col items-center justify-center bg-[#301616] py-20 text-white">
+        <h2 className="mb-4 font-serif text-2xl">Product Not Found</h2>
+        <Link href="/shop" className="border-b border-white/60 pb-1 text-sm uppercase tracking-widest">Return to Shop</Link>
       </div>
     );
   }
@@ -336,282 +339,258 @@ export default function ProductDetailClient({ slug }: { slug: string }) {
     { name: product.name, url: `https://standardecom.com/product/${slug}` }
   ]);
 
+  const sizeOptions = hasColors && selectedColor
+    ? product.variants.filter((v: any) => v.color === selectedColor)
+    : hasColors ? [] : product.variants;
+  const wished = isInWishlist(product.id);
+  const gallery = product.images || [];
+  const shownImage = gallery[activeImage] || gallery[0];
+
   return (
     <>
       <StructuredData data={productSchema} />
       <StructuredData data={breadcrumbSchema} />
 
-      <main className="min-h-screen bg-white text-black selection:bg-black selection:text-white pt-28 lg:pt-0">
+      <main className="min-h-screen bg-[#301616] text-white">
 
-        {/* Breadcrumb */}
-        <div className="absolute top-24 left-0 w-full z-10 px-6 hidden lg:block">
-          <nav className="text-[10px] uppercase tracking-[0.2em] text-gray-400 flex items-center gap-2">
-            <Link href="/" className="hover:text-black transition-colors">Home</Link>
-            <span>/</span>
-            <Link href="/shop" className="hover:text-black transition-colors">{product.category}</Link>
-            <span>/</span>
-            <span className="text-black">{product.name}</span>
-          </nav>
-        </div>
 
-        <div className="grid lg:grid-cols-2">
-          {/* Left Column: Vertical Scroll Gallery */}
-          <div className="bg-gray-50 flex flex-col gap-1 lg:pt-0 pt-8 px-4 lg:px-0">
-            {product.images.map((img: string, i: number) => (
-              <div key={i} className="relative w-full aspect-[4/5] lg:aspect-auto lg:h-screen rounded-3xl overflow-hidden">
-                <Image
-                  src={img}
-                  alt={`${product.name} - View ${i + 1}`}
-                  fill
-                  className="object-cover"
-                  priority={i === 0}
-                  sizes="(max-width: 1024px) 100vw, 50vw"
-                />
+        <div className="mx-auto grid max-w-[1440px] items-start gap-6 px-4 py-6 lg:grid-cols-2 lg:gap-10 lg:px-8 lg:py-10">
+          <div className="order-2 border border-white/15 p-5 sm:p-8 lg:order-1">
+            <div className="flex items-start justify-between gap-4 border-b border-white/15 pb-5">
+              <div>
+                <p className="text-[11px] uppercase tracking-[0.2em] text-white/50">{product.category}</p>
+                <h1 className="mt-2 font-serif text-3xl uppercase tracking-wide sm:text-4xl">{product.name}</h1>
               </div>
-            ))}
-          </div>
+              {selectedColor && <span className="pt-6 text-[11px] uppercase tracking-[0.16em] text-white/60">{selectedColor}</span>}
+            </div>
+            <p className="mt-4 text-2xl">
+              {hasVariants && !selectedVariant && !isCustomFit ? `From GH₵${minVariantPrice.toFixed(0)}` : `GH₵${activePrice.toFixed(0)}`}
+              {product.compare_at_price && product.compare_at_price > activePrice && (
+                <span className="ml-3 text-base text-white/40 line-through">GH₵{product.compare_at_price.toFixed(0)}</span>
+              )}
+            </p>
 
-          {/* Right Column: Sticky Details */}
-          <div className="lg:h-screen lg:sticky lg:top-0 lg:overflow-y-auto custom-scrollbar bg-white px-4 lg:px-0">
-            <div className="px-0 sm:px-6 py-12 lg:p-24 max-w-xl mx-auto flex flex-col justify-center min-h-full">
-
-              {/* Header */}
-              <div className="mb-10">
-                <span className="text-xs font-bold uppercase tracking-[0.2em] text-gray-300 mb-4 block">{product.category}</span>
-                <h1 className="font-serif text-4xl md:text-6xl text-black mb-6 leading-tight">{product.name}</h1>
-                <div className="flex items-baseline gap-4 flex-wrap">
-                  <span className="text-2xl font-light">
-                    {hasVariants && !selectedVariant ? (
-                      <span>From GH₵{minVariantPrice.toFixed(2)}</span>
-                    ) : (
-                      <span>GH₵{activePrice.toFixed(2)}</span>
-                    )}
-                  </span>
-                  {product.compare_at_price && product.compare_at_price > activePrice && (
-                    <span className="text-gray-400 line-through text-sm">GH₵{product.compare_at_price.toFixed(2)}</span>
-                  )}
+            <div className="mt-8 space-y-6">
+              {hasVariants && hasColors && (
+                <div>
+                  <p className="mb-3 text-sm text-white/70">Color <span className="text-white">{selectedColor}</span></p>
+                  <div className="flex flex-wrap gap-3">
+                    {product.colors.map((color: string) => (
+                      <button
+                        key={color}
+                        onClick={() => {
+                          setSelectedColor(color);
+                          const matching = product.variants.filter((v: any) => v.color === color);
+                          if (matching.length === 1) {
+                            setSelectedVariant(matching[0]);
+                            setSelectedSize(matching[0].name);
+                          } else {
+                            setSelectedVariant(null);
+                            setSelectedSize('');
+                          }
+                          setSelectionHint('');
+                        }}
+                        className={`h-8 w-8 rounded-full ${selectedColor === color ? 'ring-1 ring-offset-2 ring-offset-[#301616] ring-white' : ''}`}
+                        style={{ backgroundColor: product.colorHexMap[color], border: '1px solid rgba(255,255,255,0.35)' }}
+                        title={color}
+                      />
+                    ))}
+                  </div>
                 </div>
-              </div>
+              )}
 
-              {/* Controls */}
-              <div className="space-y-10 mb-12">
-                {hasVariants && hasColors && (
-                  <div>
-                    <label className="text-xs font-bold uppercase tracking-[0.2em] text-gray-400 mb-4 block">Color: <span className="text-black">{selectedColor}</span></label>
-                    <div className="flex flex-wrap gap-4">
-                      {product.colors.map((color: string) => (
-                        <button
-                          key={color}
-                          onClick={() => {
-                            setSelectedColor(color);
-                            // ... selection logic ...
-                            const matching = product.variants.filter((v: any) => v.color === color);
-                            if (matching.length === 1) {
-                              setSelectedVariant(matching[0]);
-                              setSelectedSize(matching[0].name);
-                            } else {
-                              setSelectedVariant(null);
-                              setSelectedSize('');
-                            }
-                            setSelectionHint('');
-                          }}
-                          className={`w-12 h-12 rounded-full relative transition-all duration-300 ${selectedColor === color ? 'ring-1 ring-offset-4 ring-black scale-110' : 'hover:scale-105 opacity-80 hover:opacity-100'}`}
-                          style={{ backgroundColor: product.colorHexMap[color], border: '1px solid rgba(0,0,0,0.1)' }}
-                          title={color}
-                        />
-                      ))}
-                    </div>
-                  </div>
-                )}
+              {hasVariants && !isCustomFit && sizeOptions.length > 0 && (
+                <label className="block">
+                  <span className="mb-2 block text-sm text-white/70">Size</span>
+                  <select
+                    value={selectedVariant?.id || ''}
+                    onChange={(e) => {
+                      const variant = sizeOptions.find((v: any) => v.id === e.target.value);
+                      setSelectedVariant(variant || null);
+                      setSelectedSize(variant?.name || '');
+                      setSelectionHint('');
+                    }}
+                    className="w-full border border-white/30 bg-transparent px-4 py-3 text-sm text-white focus:outline-none"
+                  >
+                    <option value="" className="text-black">Select a size</option>
+                    {sizeOptions.map((variant: any) => {
+                      const isOutOfStock = (variant.stock ?? variant.quantity ?? 0) === 0;
+                      return (
+                        <option key={variant.id} value={variant.id} disabled={isOutOfStock} className="text-black">
+                          {variant.name}{isOutOfStock ? ' — sold out' : ''}
+                        </option>
+                      );
+                    })}
+                  </select>
+                </label>
+              )}
 
-                {hasVariants && !isCustomFit && (
-                  <div>
-                    <label className="text-xs font-bold uppercase tracking-[0.2em] text-gray-400 mb-4 block">Select Size</label>
-                    <div className="grid grid-cols-3 gap-3">
-                      {(hasColors && selectedColor
-                        ? product.variants.filter((v: any) => v.color === selectedColor)
-                        : hasColors ? [] : product.variants
-                      ).map((variant: any) => {
-                        // ... logic ...
-                        const isSelected = selectedVariant?.id === variant.id;
-                        const isOutOfStock = (variant.stock ?? variant.quantity ?? 0) === 0;
-                        return (
-                          <button
-                            key={variant.id}
-                            disabled={isOutOfStock}
-                            onClick={() => {
-                              setSelectedVariant(variant);
-                              setSelectedSize(variant.name);
-                              setSelectionHint('');
-                            }}
-                            className={`py-3 text-sm font-medium transition-all ${isSelected
-                              ? 'bg-black text-white'
-                              : isOutOfStock
-                                ? 'bg-gray-100 text-gray-300 cursor-not-allowed'
-                                : 'bg-white border border-gray-200 hover:border-black text-gray-900'
-                              }`}
-                          >
-                            {variant.name}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
-
-                {allowCustom && (
-                  <div>
-                    <label className="text-xs font-bold uppercase tracking-[0.2em] text-gray-400 mb-4 block">Choose Your Fit</label>
-                    <div className="grid grid-cols-2 gap-3">
-                      <button
-                        type="button"
-                        onClick={() => { setFitMode('standard'); setSelectionHint(''); }}
-                        className={`text-left p-4 border transition-all ${fitMode === 'standard' ? 'border-black bg-black text-white' : 'border-gray-200 hover:border-gray-400 text-gray-900'}`}
-                      >
-                        <span className="flex items-center gap-2 text-sm font-bold"><i className="ri-t-shirt-line"></i> Standard Size</span>
-                        <span className={`mt-1 block text-xs ${fitMode === 'standard' ? 'text-white/70' : 'text-gray-500'}`}>Pick a regular size above</span>
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => { setFitMode('custom'); setSelectionHint(''); }}
-                        className={`text-left p-4 border transition-all ${fitMode === 'custom' ? 'border-black bg-black text-white' : 'border-gray-200 hover:border-gray-400 text-gray-900'}`}
-                      >
-                        <span className="flex items-center gap-2 text-sm font-bold"><i className="ri-ruler-line"></i> Custom Fit</span>
-                        <span className={`mt-1 block text-xs ${fitMode === 'custom' ? 'text-white/70' : 'text-gray-500'}`}>Made to your measurements</span>
-                      </button>
-                    </div>
-
-                    {isCustomFit && (
-                      <div className="mt-5 border border-gray-200 p-5">
-                        <div className="flex items-center justify-between gap-4 mb-4">
-                          <p className="text-sm text-gray-600 leading-relaxed">
-                            Enter your measurements for a perfect fit. We&apos;ll tailor this piece exactly to you.
-                          </p>
-                          <div className="flex items-center border border-gray-200 flex-shrink-0">
-                            {(['in', 'cm'] as MeasurementUnit[]).map((u) => (
-                              <button
-                                key={u}
-                                type="button"
-                                onClick={() => setMeasureUnit(u)}
-                                className={`px-3 py-1.5 text-xs font-bold uppercase transition-colors ${measureUnit === u ? 'bg-black text-white' : 'bg-white text-gray-500 hover:text-black'}`}
-                              >
-                                {u}
-                              </button>
-                            ))}
-                          </div>
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-4">
-                          {MEASUREMENT_FIELDS.map((field) => (
-                            <div key={field.id}>
-                              <label htmlFor={`m-${field.id}`} className="block text-[11px] font-semibold text-gray-700 mb-1">
-                                {field.label}{field.required && <span className="text-red-500"> *</span>}
-                              </label>
-                              <div className="relative">
-                                <input
-                                  id={`m-${field.id}`}
-                                  type="text"
-                                  inputMode="decimal"
-                                  value={measureValues[field.id] || ''}
-                                  onChange={(e) => {
-                                    const cleaned = e.target.value.replace(/[^0-9.]/g, '');
-                                    setMeasureValues((prev) => ({ ...prev, [field.id]: cleaned }));
-                                    if (selectionHint) setSelectionHint('');
-                                  }}
-                                  placeholder="0"
-                                  className="w-full border border-gray-200 px-3 py-2.5 pr-9 text-sm focus:outline-none focus:border-black transition-colors"
-                                />
-                                <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400">{measureUnit}</span>
-                              </div>
-                            </div>
+              {allowCustom && (
+                <div className="border-t border-white/15 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => { setFitMode(isCustomFit ? 'standard' : 'custom'); setSelectionHint(''); }}
+                    className="flex w-full items-center justify-between py-3 text-left"
+                  >
+                    <span className="flex items-center gap-2 text-sm text-white/90"><i className="ri-pencil-line"></i> Customization</span>
+                    <span className="text-lg">{isCustomFit ? '−' : '+'}</span>
+                  </button>
+                  {isCustomFit && (
+                    <div className="pb-4">
+                      <div className="mb-4 flex items-center justify-between gap-4">
+                        <p className="text-sm text-white/60">Enter your measurements and we will cut this piece to you.</p>
+                        <div className="flex shrink-0 border border-white/30">
+                          {(['in', 'cm'] as MeasurementUnit[]).map((u) => (
+                            <button
+                              key={u}
+                              type="button"
+                              onClick={() => setMeasureUnit(u)}
+                              className={`px-3 py-1.5 text-[11px] uppercase ${measureUnit === u ? 'bg-white text-[#301616]' : 'text-white/70'}`}
+                            >
+                              {u}
+                            </button>
                           ))}
                         </div>
-
-                        <div className="mt-4">
-                          <label htmlFor="m-note" className="block text-[11px] font-semibold text-gray-700 mb-1">
-                            Other measurements / notes <span className="font-normal text-gray-400">(optional)</span>
-                          </label>
-                          <textarea
-                            id="m-note"
-                            value={measureNote}
-                            onChange={(e) => setMeasureNote(e.target.value.slice(0, 500))}
-                            rows={2}
-                            placeholder="e.g. thigh, inseam, preferred fit (slim/relaxed), or anything else we should know"
-                            className="w-full resize-none border border-gray-200 px-3 py-2.5 text-sm focus:outline-none focus:border-black transition-colors"
-                          />
-                        </div>
-
-                        <p className="mt-3 flex items-start gap-1.5 text-[11px] text-gray-500">
-                          <i className="ri-information-line mt-0.5"></i>
-                          Not sure how to measure? Our team will confirm your details before production.
-                        </p>
                       </div>
-                    )}
-                  </div>
-                )}
-
-                {/* Add to Cart / Buy Now */}
-                <div className="pt-4 space-y-3">
-                  <button
-                    onClick={handleAddToCart}
-                    disabled={activeStock === 0 || isAdding}
-                    className="w-full bg-black text-white py-5 text-sm font-bold uppercase tracking-[0.2em] hover:bg-gray-800 transition-all disabled:opacity-50 disabled:cursor-not-allowed group relative overflow-hidden"
-                  >
-                    <span className={`relative z-10 transition-transform duration-300 ${isAdding ? '-translate-y-12' : 'translate-y-0'} block`}>
-                      {activeStock === 0 ? 'Out of Stock' : 'Add to Bag'}
-                    </span>
-                    <span className={`absolute inset-0 flex items-center justify-center z-10 transition-transform duration-300 ${isAdding ? 'translate-y-0' : 'translate-y-12'}`}>
-                      Added <i className="ri-check-line ml-2"></i>
-                    </span>
-                  </button>
-                  <button
-                    onClick={handleBuyNow}
-                    disabled={activeStock === 0 || isBuying}
-                    className="w-full border border-gray-900 text-gray-900 py-5 text-sm font-bold uppercase tracking-[0.2em] hover:bg-gray-900 hover:text-white transition-all disabled:opacity-40 disabled:cursor-not-allowed"
-                  >
-                    {isBuying ? 'Preparing Checkout...' : 'Buy Now'}
-                  </button>
-                  {selectionHint && (
-                    <p className="text-center text-xs text-red-500 tracking-[0.2em] uppercase">{selectionHint}</p>
+                      <div className="grid grid-cols-2 gap-3">
+                        {MEASUREMENT_FIELDS.map((field) => (
+                          <div key={field.id}>
+                            <label htmlFor={`m-${field.id}`} className="mb-1 block text-[11px] text-white/70">
+                              {field.label}{field.required && <span className="text-white"> *</span>}
+                            </label>
+                            <div className="relative">
+                              <input
+                                id={`m-${field.id}`}
+                                type="text"
+                                inputMode="decimal"
+                                value={measureValues[field.id] || ''}
+                                onChange={(e) => {
+                                  const cleaned = e.target.value.replace(/[^0-9.]/g, '');
+                                  setMeasureValues((prev) => ({ ...prev, [field.id]: cleaned }));
+                                  if (selectionHint) setSelectionHint('');
+                                }}
+                                placeholder="0"
+                                className="w-full border border-white/30 bg-transparent px-3 py-2.5 pr-9 text-sm text-white placeholder:text-white/30 focus:outline-none"
+                              />
+                              <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs text-white/40">{measureUnit}</span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                      <label htmlFor="m-note" className="mb-1 mt-3 block text-[11px] text-white/70">Other measurements / notes</label>
+                      <textarea
+                        id="m-note"
+                        value={measureNote}
+                        onChange={(e) => setMeasureNote(e.target.value.slice(0, 500))}
+                        rows={2}
+                        placeholder="Thigh, inseam, slim or relaxed — anything else we should know"
+                        className="w-full resize-none border border-white/30 bg-transparent px-3 py-2.5 text-sm text-white placeholder:text-white/30 focus:outline-none"
+                      />
+                    </div>
                   )}
-                  <p className="text-center text-xs text-gray-400 mt-4 uppercase tracking-wider">{isCustomFit ? 'Made to Order · Tailored to You' : activeStock > 0 ? 'In Stock & Ready to Ship' : 'Currently Unavailable'}</p>
                 </div>
-              </div>
+              )}
 
-              {/* Details Accordion */}
-              <div className="divide-y divide-gray-100 border-t border-gray-100">
-                <AccordionItem title="Description" isOpen={openAccordions.description} onClick={() => toggleAccordion('description')}>
-                  {product.description}
-                </AccordionItem>
-                <AccordionItem title="Details & Care" isOpen={openAccordions.features} onClick={() => toggleAccordion('features')}>
-                  <ul className="list-disc pl-4 space-y-2">
-                    {product.features.map((f: string, i: number) => <li key={i}>{f}</li>)}
-                    <li>{product.care}</li>
-                  </ul>
-                </AccordionItem>
-                <AccordionItem title="Shipping" isOpen={openAccordions.shipping} onClick={() => toggleAccordion('shipping')}>
-                  {product.shipping}
-                </AccordionItem>
-                <AccordionItem title={`Reviews (${product.reviewCount})`} isOpen={openAccordions.reviews} onClick={() => toggleAccordion('reviews')}>
-                  <ProductReviews productId={product.id} />
-                </AccordionItem>
+              <div className="flex gap-3">
+                <div className="flex border border-white/40">
+                  <button type="button" onClick={() => setQuantity((q) => Math.max(product.moq || 1, q - 1))} className="w-10 text-lg" aria-label="Decrease quantity">−</button>
+                  <span className="flex w-8 items-center justify-center text-sm">{quantity}</span>
+                  <button type="button" onClick={() => setQuantity((q) => Math.min(activeStock || q, q + 1))} className="w-10 text-lg" aria-label="Increase quantity">+</button>
+                </div>
+                <button
+                  onClick={handleAddToCart}
+                  disabled={activeStock === 0 || isAdding}
+                  className="flex-1 border border-white/40 py-3 text-[12px] uppercase tracking-[0.18em] hover:bg-white hover:text-[#301616] disabled:opacity-40"
+                >
+                  {activeStock === 0 ? 'Out of Stock' : isAdding ? 'Added' : 'Add to Cart'}
+                </button>
               </div>
+              <button
+                onClick={handleBuyNow}
+                disabled={activeStock === 0 || isBuying}
+                className="w-full bg-white py-3.5 text-[13px] font-medium uppercase tracking-[0.16em] text-[#301616] disabled:opacity-40"
+              >
+                {isBuying ? 'Preparing Checkout...' : 'Buy Now'}
+              </button>
+              {selectionHint && <p className="text-center text-xs uppercase tracking-[0.14em] text-red-300">{selectionHint}</p>}
+              <button
+                type="button"
+                onClick={() => {
+                  if (wished) removeFromWishlist(product.id);
+                  else addToWishlist({
+                    id: product.id,
+                    name: product.name,
+                    price: activePrice,
+                    image: product.images[0],
+                    inStock: activeStock > 0,
+                    slug: product.slug,
+                  });
+                }}
+                className="flex w-full items-center justify-center gap-2 py-2 text-sm text-white/80"
+              >
+                <i className={wished ? 'ri-heart-fill' : 'ri-heart-line'}></i>
+                {wished ? 'Saved to Wishlist' : 'Add to Wishlist'}
+              </button>
+              <p className="text-center text-[11px] uppercase tracking-[0.16em] text-white/45">
+                {isCustomFit ? 'Made to order · tailored to you' : activeStock > 0 ? 'In stock & ready to ship' : 'Currently unavailable'}
+              </p>
+            </div>
 
+            <div className="mt-8 border-t border-white/15">
+              <AccordionItem title="About this piece" isOpen={openAccordions.description} onClick={() => toggleAccordion('description')}>
+                {product.description}
+              </AccordionItem>
+              <AccordionItem title="Details & Care" isOpen={openAccordions.features} onClick={() => toggleAccordion('features')}>
+                <ul className="list-disc space-y-2 pl-4">
+                  {product.features.map((f: string, i: number) => <li key={i}>{f}</li>)}
+                  <li>{product.care}</li>
+                </ul>
+              </AccordionItem>
+              <AccordionItem title="Shipping" isOpen={openAccordions.shipping} onClick={() => toggleAccordion('shipping')}>
+                {product.shipping}
+              </AccordionItem>
+              <AccordionItem title={`Reviews (${product.reviewCount})`} isOpen={openAccordions.reviews} onClick={() => toggleAccordion('reviews')}>
+                <ProductReviews productId={product.id} />
+              </AccordionItem>
+            </div>
+          </div>
+
+          <div className="order-1 lg:sticky lg:top-24 lg:order-2 lg:self-start">
+            <div className="flex gap-3">
+              {gallery.length > 1 && (
+                <div className="hidden max-h-[78vh] w-16 shrink-0 flex-col gap-2 overflow-y-auto sm:flex">
+                  {gallery.map((img: string, i: number) => (
+                    <button key={img + i} type="button" onClick={() => setActiveImage(i)} className={`relative aspect-[3/4] overflow-hidden border ${activeImage === i ? 'border-white' : 'border-transparent opacity-70'}`}>
+                      <Image src={img} alt="" fill className="object-cover" sizes="64px" />
+                    </button>
+                  ))}
+                </div>
+              )}
+              <div className="relative min-h-[70vh] flex-1 overflow-hidden bg-black/20">
+                {shownImage && (
+                  <Image src={shownImage} alt={product.name} fill priority className="object-cover" sizes="(max-width: 1024px) 100vw, 50vw" />
+                )}
+              </div>
             </div>
           </div>
         </div>
 
         {relatedProducts.length > 0 && (
-          <div className="bg-white py-24 px-4 border-t border-gray-100">
-            <div className="max-w-7xl mx-auto">
-              <h2 className="font-serif text-3xl mb-12 text-center">You May Also Like</h2>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-                {relatedProducts.map(p => <ProductCard key={p.id} {...p} />)}
-              </div>
+          <div className="border-t border-white/15 px-4 py-12 lg:px-8">
+            <h2 className="text-[13px] uppercase tracking-[0.22em]">You May Also Like</h2>
+            <div className="mt-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
+              {relatedProducts.map((p) => (
+                <Link key={p.id} href={`/product/${p.slug || p.id}`} className="group block">
+                  <div className="relative aspect-[3/4] overflow-hidden bg-[#efeae6]">
+                    <Image src={p.image} alt={p.name} fill className="object-cover" sizes="25vw" />
+                  </div>
+                  <p className="mt-3 text-[12px] uppercase tracking-[0.08em]">{p.name}</p>
+                  <p className="mt-1 text-[12px] text-white/70">GH₵{Number(p.price).toFixed(0)}</p>
+                </Link>
+              ))}
             </div>
           </div>
         )}
-
       </main>
     </>
   );
