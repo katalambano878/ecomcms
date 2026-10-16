@@ -207,6 +207,11 @@ export default function AdminLayout({
       moduleId: 'notifications'
     },
     {
+      title: 'Buy SMS',
+      icon: 'ri-message-2-line',
+      path: '/admin/sms-credit'
+    },
+    {
       title: 'SMS Debugger',
       icon: 'ri-message-2-line',
       path: '/admin/test-sms'
