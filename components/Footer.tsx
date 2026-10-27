@@ -83,7 +83,7 @@ export default function Footer() {
       <div className="mx-auto max-w-[1400px] px-5 sm:px-8 pt-16 pb-8">
         <div className="grid gap-14 lg:grid-cols-12">
           <div className="lg:col-span-4">
-            <Link href="/" className="font-serif text-4xl sm:text-5xl uppercase tracking-[0.12em] text-white">
+            <Link href="/" className="block max-w-xs font-serif text-xl uppercase leading-tight tracking-[0.08em] text-white sm:text-2xl">
               {siteName}
             </Link>
             {showNewsletter && (

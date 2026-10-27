@@ -167,7 +167,7 @@ export default function Home() {
 
   return (
     <main className="bg-[#301616] text-white">
-      <section className="relative h-[100svh] min-h-[560px] w-full overflow-hidden bg-black">
+      <section className="relative h-[calc(100svh-72px)] min-h-[520px] w-full overflow-hidden bg-black">
         {heroImage ? (
         <Image src={heroImage} alt="" fill priority className="object-cover object-center" sizes="100vw" quality={90} />
         ) : null}
