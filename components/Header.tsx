@@ -71,6 +71,9 @@ export default function Header() {
   };
 
   const atelierNav = [{ label: 'Home', href: '/' }, ...navLinks];
+  const brandWords = siteName.trim().split(/\s+/).filter(Boolean);
+  const brandLead = brandWords.length > 1 ? brandWords.slice(0, -1).join(' ') : siteName.trim();
+  const brandTail = brandWords.length > 1 ? brandWords[brandWords.length - 1] : '';
 
   return (
     <>
@@ -78,7 +81,7 @@ export default function Header() {
 
       {isAtelierHome ? (
         <header className={`z-50 text-white ${pathname === '/' ? 'fixed inset-x-0 top-0' : 'sticky top-0 border-b border-white/10 bg-[#301616]'}`}>
-          <nav aria-label="Main navigation" className="grid h-[72px] grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-3 px-4 sm:px-6 lg:px-8">
+          <nav aria-label="Main navigation" className="grid h-[72px] grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2 px-3 sm:gap-3 sm:px-6 lg:px-8">
             <div className="flex min-w-0 items-center gap-5">
               <button
                 className="lg:hidden"
@@ -102,10 +105,17 @@ export default function Header() {
 
             <Link
               href="/"
-              className="justify-self-center px-3 font-serif text-[18px] uppercase tracking-[0.18em] text-white sm:text-[22px]"
+              className="justify-self-center max-w-[62vw] px-1 text-center font-serif uppercase leading-none text-white sm:max-w-none"
               aria-label={siteName}
             >
-              {(siteName.split(/\s+/)[0] || siteName).replace(/prettydolls/i, '') || siteName}
+              <span className="block whitespace-nowrap text-[11px] tracking-[0.06em] min-[390px]:text-[12.5px] min-[390px]:tracking-[0.08em] sm:text-[15px] sm:tracking-[0.1em] lg:text-[13px] lg:tracking-[0.08em] xl:text-[16px] xl:tracking-[0.12em]">
+                {brandLead}
+              </span>
+              {brandTail ? (
+                <span className="mt-1 block whitespace-nowrap text-[8px] tracking-[0.22em] text-white/90 min-[390px]:text-[9px] sm:mt-1.5 sm:text-[11px] sm:tracking-[0.28em] lg:text-[9px] lg:tracking-[0.24em] xl:text-[11px] xl:tracking-[0.28em]">
+                  {brandTail}
+                </span>
+              ) : null}
             </Link>
 
             <div className="flex items-center justify-end gap-4 sm:gap-5">
