@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { supabase } from '@/lib/supabase';
+import { supabase, syncAdminSessionCookie } from '@/lib/supabase';
 import { useRecaptcha } from '@/hooks/useRecaptcha';
 
 export default function AdminLoginPage() {
@@ -37,6 +37,8 @@ export default function AdminLoginPage() {
       if (error) throw error;
 
       if (data.session) {
+        // The server-side admin gate (middleware.ts) reads this cookie.
+        syncAdminSessionCookie(data.session);
         router.push('/admin');
         router.refresh();
       }

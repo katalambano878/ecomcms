@@ -1,28 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
+import { verifyAuth } from "@/lib/auth";
 import { confirmSmsCheckout, getSmsBilling, startSmsCheckout, taysendConfigured } from "@/lib/taysend-billing";
 
 export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
 
 const PACKAGE_ID = /^[a-z0-9-]{1,40}$/;
 const PAYMENT_ID = /^pay_[A-Za-z0-9]+$/;
 
+/** Admin or staff only: 401 without a valid session, 403 for any other role. */
 async function requireAdmin(request: NextRequest) {
-  const token = request.headers.get("authorization")?.replace(/^Bearer\s+/i, "").trim();
-  if (!token) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL || "",
-    process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "",
-  );
-  const { data: { user }, error } = await supabase.auth.getUser(token);
-  if (error || !user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
-  const { data: profile } = await supabase.from("profiles").select("role").eq("id", user.id).single();
-  if (!profile || (profile.role !== "admin" && profile.role !== "staff")) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  }
-  return null;
+  const auth = await verifyAuth(request, { requireRole: ["admin", "staff"] });
+  if (auth.authenticated) return null;
+  if (!auth.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 }
 
 export async function GET(request: NextRequest) {

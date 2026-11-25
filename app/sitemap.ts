@@ -1,8 +1,8 @@
 import { MetadataRoute } from 'next';
-import { createClient } from '@supabase/supabase-js';
+import { createServerSupabase } from '@/lib/supabase-server';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+// Built per request: nothing may need the database during `next build`.
+export const dynamic = 'force-dynamic';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
@@ -46,7 +46,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   let categoryPages: MetadataRoute.Sitemap = [];
 
   try {
-    const supabase = createClient(supabaseUrl, supabaseKey);
+    // Same rows a visitor sees (the old anon-key client), in-process.
+    const supabase = createServerSupabase('anon');
 
     // Fetch active products
     const { data: products } = await supabase
@@ -55,7 +56,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       .eq('status', 'active');
 
     if (products) {
-      productPages = products.map((product) => ({
+      productPages = products.map((product: any) => ({
         url: `${baseUrl}/product/${product.slug}`,
         lastModified: new Date(product.updated_at),
         changeFrequency: 'weekly' as const,
@@ -70,7 +71,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       .eq('status', 'active');
 
     if (categories) {
-      categoryPages = categories.map((category) => ({
+      categoryPages = categories.map((category: any) => ({
         url: `${baseUrl}/category/${category.slug}`,
         lastModified: new Date(category.updated_at),
         changeFrequency: 'weekly' as const,

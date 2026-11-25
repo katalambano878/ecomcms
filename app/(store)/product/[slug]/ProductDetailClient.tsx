@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { cachedQuery } from '@/lib/query-cache';
+import { absoluteMediaUrl } from '@/lib/media-url';
 import ProductReviews from '@/components/ProductReviews';
 import { StructuredData, generateProductSchema, generateBreadcrumbSchema } from '@/components/SEOHead';
 import { useCart } from '@/context/CartContext';
@@ -323,7 +324,8 @@ export default function ProductDetailClient({ slug }: { slug: string }) {
   const productSchema = generateProductSchema({
     name: product.name,
     description: product.description,
-    image: product.images[0],
+    // Stored photo URLs are host-relative; structured data needs a full URL.
+    image: absoluteMediaUrl(product.images[0]) || '',
     price: hasVariants ? minVariantPrice : product.price,
     currency: 'GHS',
     sku: product.sku,
