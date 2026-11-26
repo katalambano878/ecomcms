@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { Suspense, useState, useEffect } from 'react';
-import { supabase } from '@/lib/supabase';
+import { fetchOrderForView } from '@/lib/order-view';
 import { measurementLines } from '@/lib/measurements';
 
 function OrderSuccessContent() {
@@ -23,14 +23,7 @@ function OrderSuccessContent() {
       }
 
       try {
-        const { data: orderData, error } = await supabase
-          .from('orders')
-          .select(`
-                    *,
-                    order_items (*)
-                `)
-          .eq('order_number', orderNumber)
-          .single();
+        const { data: orderData, error } = await fetchOrderForView(orderNumber);
 
         if (error) throw error;
         setOrder(orderData);
@@ -56,11 +49,7 @@ function OrderSuccessContent() {
     await new Promise(resolve => setTimeout(resolve, 3000));
     
     // Re-fetch order to check if callback already updated it
-    const { data: refreshed } = await supabase
-      .from('orders')
-      .select('*, order_items (*)')
-      .eq('order_number', orderNum)
-      .single();
+    const { data: refreshed } = await fetchOrderForView(orderNum);
     
     if (refreshed?.payment_status === 'paid') {
       setOrder(refreshed);
@@ -83,11 +72,7 @@ function OrderSuccessContent() {
       
       if (result.success && result.payment_status === 'paid') {
         // Re-fetch full order data
-        const { data: updated } = await supabase
-          .from('orders')
-          .select('*, order_items (*)')
-          .eq('order_number', orderNum)
-          .single();
+        const { data: updated } = await fetchOrderForView(orderNum);
         if (updated) setOrder(updated);
       }
     } catch (err) {

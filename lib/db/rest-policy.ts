@@ -183,8 +183,10 @@ export function publicError(
  * RPCs the browser may call through supabase.rpc(): exactly the ones this
  * shop's client pages call, plus is_admin_or_staff (role checks).
  *
- * - upsert_customer_from_order: checkout (guests and signed-in shoppers)
- *   and the admin till (app/admin/pos).
+ * - upsert_customer_from_order: the admin till (app/admin/pos) only, so
+ *   staff only. Checkout goes through /api/orders/customer (details taken
+ *   from the order just placed): from the browser anyone could overwrite any
+ *   customer's details by email.
  * - mark_order_paid: the admin till only, for cash/card sales. Staff only
  *   here: the function itself checks nothing, so on hosted Supabase anyone
  *   could mark any order paid with it.
@@ -194,7 +196,7 @@ export function publicError(
  * server-only and runs in-process as the service role.
  */
 const BROWSER_RPCS = new Set(["is_admin_or_staff", "upsert_customer_from_order", "mark_order_paid"]);
-const STAFF_ONLY_RPCS = new Set(["mark_order_paid"]);
+const STAFF_ONLY_RPCS = new Set(["upsert_customer_from_order", "mark_order_paid"]);
 
 /**
  * Whether `actor` may call public.<fn> over /rest/v1/rpc. In-process server

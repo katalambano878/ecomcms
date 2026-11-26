@@ -1,5 +1,7 @@
 import { Resend } from 'resend';
-import { supabase } from '@/lib/supabase';
+// Server-only module (API routes): order items are read with the in-process
+// service client, since browser roles can no longer read guest orders.
+import { supabaseAdmin as supabase } from '@/lib/supabase-admin';
 import { measurementLines } from '@/lib/measurements';
 
 const resend = new Resend(process.env.RESEND_API_KEY || 'missing_api_key');

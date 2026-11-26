@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { supabase } from '@/lib/supabase';
+import { fetchOrderForView } from '@/lib/order-view';
 
 function OrderTrackingContent() {
   const searchParams = useSearchParams();
@@ -28,24 +28,18 @@ function OrderTrackingContent() {
     setError('');
 
     try {
-      const { data, error: fetchError } = await supabase
-        .from('orders')
-        .select(`
-          *,
-          order_items (
-            id,
-            product_name,
-            variant_name,
-            quantity,
-            unit_price,
-            metadata,
-            products (
-              product_images (url)
-            )
-          )
-        `)
-        .eq('order_number', orderNum)
-        .single();
+      // Server route: one order by its exact number (guest orders are not
+      // readable through the data API); the email, if given, is checked there.
+      const { data, error: fetchError } = await fetchOrderForView(orderNum.trim(), {
+        view: 'tracking',
+        email: email.trim() || undefined,
+      });
+
+      if (fetchError?.message === 'email_mismatch') {
+        setError('The email address does not match this order.');
+        setIsTracking(false);
+        return;
+      }
 
       if (fetchError || !data) {
         setError('Order not found. Please check your order number and try again.');

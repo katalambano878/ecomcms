@@ -147,9 +147,14 @@ export default function CheckoutPage() {
       const trackingNumber = `SLI-${trackingId}`;
 
       // 1. Create Order
-      const { data: order, error: orderError } = await supabase
-        .from('orders')
-        .insert([{
+      // The order id is made here so the insert needs no read-back: guest
+      // orders are not readable through the data API (privacy).
+      const orderId = typeof crypto.randomUUID === 'function'
+        ? crypto.randomUUID()
+        : '10000000-1000-4000-8000-100000000000'.replace(/[018]/g, (c) =>
+            (Number(c) ^ (crypto.getRandomValues(new Uint8Array(1))[0] & (15 >> (Number(c) / 4)))).toString(16));
+      const orderRow = {
+          id: orderId,
           order_number: orderNumber,
           user_id: user?.id || null, // Capture user_id if logged in
           email: shippingData.email,
@@ -172,11 +177,11 @@ export default function CheckoutPage() {
             last_name: shippingData.lastName,
             tracking_number: trackingNumber
           }
-        }])
-        .select()
-        .single();
+        };
+      const { error: orderError } = await supabase.from('orders').insert([orderRow]);
 
       if (orderError) throw orderError;
+      const order = { ...orderRow, created_at: new Date().toISOString() };
 
       // 2. Create Order Items (with UUID validation)
       // Helper to check if string is a valid UUID
@@ -238,17 +243,13 @@ export default function CheckoutPage() {
 
       // Note: Stock reduction happens in mark_order_paid when payment is confirmed
 
-      // 3. Upsert Customer Record (for both guest and registered users)
-      const fullName = `${shippingData.firstName} ${shippingData.lastName}`.trim();
-      await supabase.rpc('upsert_customer_from_order', {
-        p_email: shippingData.email,
-        p_phone: shippingData.phone,
-        p_full_name: fullName,
-        p_first_name: shippingData.firstName,
-        p_last_name: shippingData.lastName,
-        p_user_id: user?.id || null,
-        p_address: shippingData
-      });
+      // 3. Upsert Customer Record (for both guest and registered users),
+      // server-side from the order just placed
+      await fetch('/api/orders/customer', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderId: order.id })
+      }).catch(err => console.error('Customer record error:', err));
 
       // 4. Handle Payment Redirects or Completion
       if (paymentMethod === 'moolre') {
